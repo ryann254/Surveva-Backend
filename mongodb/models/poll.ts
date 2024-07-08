@@ -54,6 +54,9 @@ export interface IPollData {
   answers: string[];
   category: mongoose.Types.ObjectId;
   language: string;
+  servedAt?: Date;
+  paid?: string;
+  responses?: IResponse[];
 }
 
 // TODO: Change the `origin` field to an enum; It can either be DSA or QMS
