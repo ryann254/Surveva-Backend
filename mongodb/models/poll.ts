@@ -40,7 +40,6 @@ const PollSchema = new mongoose.Schema<IPollDoc>(
           age: Date,
           gender: String,
         },
-        trim: true,
       },
     ],
   },
@@ -48,6 +47,14 @@ const PollSchema = new mongoose.Schema<IPollDoc>(
     timestamps: true,
   }
 );
+
+// Data sctructure expected from the frontend
+export interface IPollData {
+  question: string;
+  answers: string[];
+  category: mongoose.Types.ObjectId;
+  language: string;
+}
 
 // TODO: Change the `origin` field to an enum; It can either be DSA or QMS
 export interface IResponse {
