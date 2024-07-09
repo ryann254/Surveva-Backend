@@ -59,7 +59,7 @@ export interface IPollData {
   responses?: IResponse[];
 }
 
-// TODO: Change the `origin` field to an enum; It can either be DSA or QMS
+// TODO: Change the `origin and gender` fieldsS to an enum; It can either be DSA or QMS
 export interface IResponse {
   answer: string;
   origin: string;

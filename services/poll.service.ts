@@ -5,25 +5,50 @@ import { get } from 'http';
 /**
  * Create a poll
  * @param {IPollData} pollBody
- * @returns a Promise<IPollDoc>
+ * @returns {Promise<IPollDoc>}
  */
 export const createPoll = async (pollBody: IPollData): Promise<IPollDoc> =>
   Poll.create(pollBody);
 
 /**
- * Get a poll by Id
+ * Get all polls
+ * @returns {Promise<IPollDoc[]>}
+ */
+export const getAllPolls = async (): Promise<IPollDoc[]> => Poll.find({});
+
+/**
+ * Get poll by Id
  * @param {mongoose.Types.ObjectId} pollId
- * @returns a Promise<IPollDoc | null>
+ * @returns {Promise<IPollDoc | null>}
  */
 export const getPollById = async (
   pollId: mongoose.Types.ObjectId
 ): Promise<IPollDoc | null> => Poll.findById(pollId);
 
 /**
+ * Search polls
+ * @param {string} searchTerm
+ * @returns {Promise<IPollDoc[]>}
+ */
+export const searchPolls = async (searchTerm: string): Promise<IPollDoc[]> => {
+  const results = await Poll.aggregate([
+    {
+      $match: {
+        $expr: {
+          $regexMatch: { input: '$question', regex: searchTerm, options: 'i' },
+        },
+      },
+    },
+    { $limit: 10 },
+  ]).exec();
+  return results;
+};
+
+/**
  * Update a poll
  * @param {mongoose.Types.ObjectId} pollId
  * @param {Partial<IPollData>} pollBody
- * @returns a Promise<IPollDoc>
+ * @returns {Promise<IPollDoc>}
  */
 export const updatePoll = async (
   pollId: mongoose.Types.ObjectId,
@@ -37,3 +62,10 @@ export const updatePoll = async (
   await poll.save();
   return poll;
 };
+
+/**
+ * Delete poll
+ * @param {mongoose.Types.ObjectId} pollId
+ */
+export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
+  Poll.findOneAndDelete({ _id: pollId });

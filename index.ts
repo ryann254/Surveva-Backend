@@ -31,8 +31,14 @@ const PORT = 5000 || process.env.PORT;
 // Connect to MongoDB and run server.
 mongoose
   .connect(process.env.MONGODB_URI || '')
-  .then(() => {
+  .then(async () => {
     console.log('Connected to MongoDB');
+    // Text index the `question` field in the Polls collection to allow for text searching later on.
+    const db = mongoose.connection.db;
+    const pollsCollection = db.collection('polls');
+    await pollsCollection.createIndex({ question: 'text' });
+    console.log('Indexed pollsCollection');
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
