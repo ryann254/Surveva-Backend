@@ -1,6 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 
-const PollSchema = new mongoose.Schema<IPollDoc>(
+const QMSSchema = new mongoose.Schema<IQMSDoc>(
   {
     question: {
       type: String,
@@ -68,7 +68,7 @@ export interface IResponse {
   gender: string;
 }
 
-export interface IPollSchema {
+export interface IQMSSchema {
   question: string;
   answers: string[];
   category: mongoose.Types.ObjectId;
@@ -78,8 +78,8 @@ export interface IPollSchema {
   responses: IResponse[];
 }
 
-export interface IPollDoc extends IPollSchema, Document {}
+export interface IQMSDoc extends IQMSSchema, Document {}
 
-const Poll = mongoose.model<IPollDoc>('Poll', PollSchema);
+const QMS = mongoose.model<IQMSDoc>('QMS', QMSSchema);
 
-export default Poll;
+export default QMS;

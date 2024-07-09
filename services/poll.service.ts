@@ -1,37 +1,36 @@
 import mongoose from 'mongoose';
-import Poll, { IPollData, IPollDoc } from '../mongodb/models/poll';
-import { get } from 'http';
+import QMS, { IPollData, IQMSDoc } from '../mongodb/models/qms';
 
 /**
  * Create a poll
  * @param {IPollData} pollBody
- * @returns {Promise<IPollDoc>}
+ * @returns {Promise<IQMSDoc>}
  */
-export const createPoll = async (pollBody: IPollData): Promise<IPollDoc> =>
-  Poll.create(pollBody);
+export const createPoll = async (pollBody: IPollData): Promise<IQMSDoc> =>
+  QMS.create(pollBody);
 
 /**
  * Get all polls
- * @returns {Promise<IPollDoc[]>}
+ * @returns {Promise<IQMSDoc[]>}
  */
-export const getAllPolls = async (): Promise<IPollDoc[]> => Poll.find({});
+export const getAllPolls = async (): Promise<IQMSDoc[]> => QMS.find({});
 
 /**
  * Get poll by Id
  * @param {mongoose.Types.ObjectId} pollId
- * @returns {Promise<IPollDoc | null>}
+ * @returns {Promise<IQMSDoc | null>}
  */
 export const getPollById = async (
   pollId: mongoose.Types.ObjectId
-): Promise<IPollDoc | null> => Poll.findById(pollId);
+): Promise<IQMSDoc | null> => QMS.findById(pollId);
 
 /**
  * Search polls
  * @param {string} searchTerm
- * @returns {Promise<IPollDoc[]>}
+ * @returns {Promise<IQMSDoc[]>}
  */
-export const searchPolls = async (searchTerm: string): Promise<IPollDoc[]> => {
-  const results = await Poll.aggregate([
+export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
+  const results = await QMS.aggregate([
     {
       $match: {
         $expr: {
@@ -48,12 +47,12 @@ export const searchPolls = async (searchTerm: string): Promise<IPollDoc[]> => {
  * Update a poll
  * @param {mongoose.Types.ObjectId} pollId
  * @param {Partial<IPollData>} pollBody
- * @returns {Promise<IPollDoc>}
+ * @returns {Promise<IQMSDoc>}
  */
 export const updatePoll = async (
   pollId: mongoose.Types.ObjectId,
   pollBody: Partial<IPollData>
-): Promise<IPollDoc> => {
+): Promise<IQMSDoc> => {
   const poll = await getPollById(pollId);
 
   if (!poll) throw new Error('Poll not found');
@@ -68,4 +67,4 @@ export const updatePoll = async (
  * @param {mongoose.Types.ObjectId} pollId
  */
 export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
-  Poll.findOneAndDelete({ _id: pollId });
+  QMS.findOneAndDelete({ _id: pollId });
