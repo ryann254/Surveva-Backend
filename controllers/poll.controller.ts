@@ -47,7 +47,7 @@ export const getPollController = async (req: Request, res: Response) => {
 export const deletePollController = async (req: Request, res: Response) => {
   if (!req.params.pollId) throw new Error('Poll not found');
 
-  const result = await deletePoll(req.params.pollId);
+  await deletePoll(req.params.pollId);
   return res
     .status(httpStatus.OK)
     .json({ message: 'Poll deleted successfully' });

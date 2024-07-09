@@ -89,12 +89,11 @@ const UserSchema = new mongoose.Schema<IUserDoc>(
   }
 );
 
-export interface IUserSchema {
+export interface IUserData {
   username: string;
   password: string;
   email: string;
   role: string;
-  emailVerified: boolean;
   profilePic: string;
   dob: Date;
   location: {
@@ -104,6 +103,10 @@ export interface IUserSchema {
   language: string;
   gender: string;
   categories: Types.DocumentArray<mongoose.Types.ObjectId>;
+}
+
+export interface IUserSchema extends IUserData {
+  emailVerified: boolean;
 }
 
 export interface IUserDoc extends IUserSchema, Document {}
