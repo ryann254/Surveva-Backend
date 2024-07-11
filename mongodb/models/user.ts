@@ -1,5 +1,5 @@
 import mongoose, { Document, Types } from 'mongoose';
-import { Gender, Roles, gender, roles } from '../../config';
+import { Gender, Roles, gender, roles, platform, Platform } from '../../config';
 
 const UserSchema = new mongoose.Schema<IUserDoc>(
   {
@@ -77,6 +77,11 @@ const UserSchema = new mongoose.Schema<IUserDoc>(
       enum: gender,
       default: Gender.MALE,
     },
+    platform: {
+      type: String,
+      enum: platform,
+      default: Platform.ANDROID,
+    },
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -102,6 +107,7 @@ export interface IUserData {
   };
   language: string;
   gender: string;
+  platform: string;
   categories: Types.DocumentArray<mongoose.Types.ObjectId>;
 }
 

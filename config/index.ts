@@ -1,3 +1,10 @@
-import { roles, gender, Roles, Gender } from './rolesAndGender';
+import {
+  roles,
+  gender,
+  Roles,
+  Gender,
+  Platform,
+  platform,
+} from './rolesAndGender';
 
-export { roles, gender, Roles, Gender };
+export { roles, gender, Roles, Gender, Platform, platform };
