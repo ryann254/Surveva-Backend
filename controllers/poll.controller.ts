@@ -8,17 +8,19 @@ import {
   searchPolls,
   updatePoll,
 } from '../services/poll.service';
-import { sendAmplitudeAnalytics } from '../utils/sendAmplitudeAnalytics';
+import {
+  deleteAmplitudeAnalytics,
+  sendAmplitudeAnalytics,
+} from '../utils/handleAmplitudeAnalytics';
 
 // TODO: Add better request data validation - Remove all `throw new Error...`
 export const createPollController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
 
   const poll = await createPoll(req.body);
-  // TODO: Replace the following fields: user_id, age, gender, country, region and platform.
-  // Send `create_poll` analytic to Amplitude
+  // Send `poll_created` analytic to Amplitude
   if (poll) {
-    sendAmplitudeAnalytics('create_poll');
+    sendAmplitudeAnalytics('poll_created');
   }
 
   return res.status(httpStatus.CREATED).json(poll);
