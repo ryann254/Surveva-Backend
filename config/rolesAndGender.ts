@@ -15,6 +15,11 @@ export enum Platform {
   WEB = 'web',
 }
 
+export enum Origin {
+  DSA = 'dsa',
+  QMS = 'qms',
+}
+
 export type RolesMap = {
   [key in Roles]: string[];
 };
@@ -28,4 +33,5 @@ const allRoles: RolesMap = {
 export const roles = Object.values(Roles);
 export const gender = Object.values(Gender);
 export const platform = Object.values(Platform);
+export const origin = Object.values(Origin);
 export const roleRights = new Map(Object.entries(allRoles));

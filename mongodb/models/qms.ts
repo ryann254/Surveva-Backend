@@ -1,4 +1,7 @@
 import mongoose, { Document } from 'mongoose';
+import { z } from 'zod';
+import { Gender } from '../../config';
+import { Origin } from '../../config/rolesAndGender';
 
 const QMSSchema = new mongoose.Schema<IQMSDoc>(
   {
@@ -48,35 +51,27 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
   }
 );
 
-// Data sctructure expected from the frontend
-export interface IPollData {
-  question: string;
-  answers: string[];
-  category: mongoose.Types.ObjectId;
-  language: string;
-  servedAt?: Date;
-  paid?: string;
-  responses?: IResponse[];
-}
+export const QMSObject = z.object({
+  question: z.string(),
+  answers: z.array(z.string()),
+  category: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
+  language: z.string(),
+  servedAt: z.union([z.date(), z.string()]).optional(),
+  paid: z.string().optional(),
+  responses: z
+    .array(
+      z.object({
+        answer: z.string(),
+        origin: z.nativeEnum(Origin),
+        geography: z.string(),
+        age: z.union([z.date(), z.string()]),
+        gender: z.nativeEnum(Gender),
+      })
+    )
+    .optional(),
+});
 
-// TODO: Change the `origin and gender` fieldsS to an enum; It can either be DSA or QMS
-export interface IResponse {
-  answer: string;
-  origin: string;
-  geography: string;
-  age: Date;
-  gender: string;
-}
-
-export interface IQMSSchema {
-  question: string;
-  answers: string[];
-  category: mongoose.Types.ObjectId;
-  language: string;
-  servedAt: Date;
-  paid: string;
-  responses: IResponse[];
-}
+export type IQMSSchema = z.infer<typeof QMSObject>;
 
 export interface IQMSDoc extends IQMSSchema, Document {}
 

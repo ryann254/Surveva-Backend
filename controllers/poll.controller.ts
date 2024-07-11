@@ -12,12 +12,14 @@ import {
   deleteAmplitudeAnalytics,
   sendAmplitudeAnalytics,
 } from '../utils/handleAmplitudeAnalytics';
+import { QMSObject } from '../mongodb/models/qms';
 
 // TODO: Add better request data validation - Remove all `throw new Error...`
 export const createPollController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
 
-  const poll = await createPoll(req.body);
+  const parsedPoll = QMSObject.parse(req.body);
+  const poll = await createPoll(parsedPoll);
   // Send `poll_created` analytic to Amplitude
   if (poll) {
     sendAmplitudeAnalytics('poll_created');
@@ -37,6 +39,7 @@ export const updatePollController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
   if (!req.params.pollId) throw new Error('Poll not found');
 
+  const parsedPoll = QMSObject.partial().parse(req.body);
   const poll = await updatePoll(req.params.pollId, req.body);
   return res.status(httpStatus.OK).json(poll);
 };

@@ -1,4 +1,5 @@
 import mongoose, { Document, Types } from 'mongoose';
+import { z } from 'zod';
 import { Gender, Roles, gender, roles, platform, Platform } from '../../config';
 
 const UserSchema = new mongoose.Schema<IUserDoc>(
@@ -10,7 +11,6 @@ const UserSchema = new mongoose.Schema<IUserDoc>(
     },
     password: {
       type: String,
-      required: true,
       trim: true,
       minlength: 8,
       validate(value: string) {
@@ -94,26 +94,27 @@ const UserSchema = new mongoose.Schema<IUserDoc>(
   }
 );
 
-export interface IUserData {
-  username: string;
-  password: string;
-  email: string;
-  role: string;
-  profilePic: string;
-  dob: Date;
-  location: {
-    country: string;
-    continent: string;
-  };
-  language: string;
-  gender: string;
-  platform: string;
-  categories: Types.DocumentArray<mongoose.Types.ObjectId>;
-}
+export const UserObject = z.object({
+  username: z.string().min(3),
+  password: z.string().min(8).optional(),
+  email: z.string().email(),
+  role: z.nativeEnum(Roles),
+  profilePic: z.string(),
+  dob: z.union([z.date(), z.string()]),
+  location: z.object({
+    country: z.string(),
+    continent: z.string(),
+  }),
+  emailVerified: z.boolean().optional(),
+  language: z.string(),
+  gender: z.nativeEnum(Gender),
+  platform: z.nativeEnum(Platform),
+  categories: z.array(
+    z.union([z.instanceof(mongoose.Types.ObjectId), z.string()])
+  ),
+});
 
-export interface IUserSchema extends IUserData {
-  emailVerified: boolean;
-}
+export type IUserSchema = z.infer<typeof UserObject>;
 
 export interface IUserDoc extends IUserSchema, Document {}
 

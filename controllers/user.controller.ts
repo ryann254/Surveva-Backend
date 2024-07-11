@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
+import { z } from 'zod';
 import {
   createUser,
   deleteUser,
@@ -10,11 +11,13 @@ import {
   deleteAmplitudeAnalytics,
   sendAmplitudeAnalytics,
 } from '../utils/handleAmplitudeAnalytics';
+import { UserObject } from '../mongodb/models/user';
 
 export const createUserController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
 
-  const user = await createUser(req.body);
+  const parsedUser = UserObject.parse(req.body);
+  const user = await createUser(parsedUser);
   // Send `user_created` analytic to Amplitude
   if (user) {
     sendAmplitudeAnalytics('user_created');
@@ -27,7 +30,8 @@ export const updateUserController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
   if (!req.params.userId) throw new Error('User not found');
 
-  const user = await updateUser(req.params.userId, req.body);
+  const parsedUser = UserObject.partial().parse(req.body);
+  const user = await updateUser(req.params.userId, parsedUser);
   return res.status(httpStatus.OK).json(user);
 };
 

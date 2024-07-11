@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import QMS, { IPollData, IQMSDoc } from '../mongodb/models/qms';
+import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
 
 /**
  * Create a poll
  * @param {IPollData} pollBody
  * @returns {Promise<IQMSDoc>}
  */
-export const createPoll = async (pollBody: IPollData): Promise<IQMSDoc> =>
+export const createPoll = async (pollBody: IQMSSchema): Promise<IQMSDoc> =>
   QMS.create(pollBody);
 
 /**
@@ -51,7 +51,7 @@ export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
  */
 export const updatePoll = async (
   pollId: mongoose.Types.ObjectId,
-  pollBody: Partial<IPollData>
+  pollBody: Partial<IQMSSchema>
 ): Promise<IQMSDoc> => {
   const poll = await getPollById(pollId);
 

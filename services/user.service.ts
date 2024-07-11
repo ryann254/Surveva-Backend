@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import User, { IUserData, IUserDoc } from '../mongodb/models/user';
+import User, { IUserDoc, IUserSchema } from '../mongodb/models/user';
 
 /**
  * Create user
  * @param {IUserData} userBody
  * @returns {Promise<IUserDoc>}
  */
-export const createUser = async (userBody: IUserData): Promise<IUserDoc> =>
+export const createUser = async (userBody: IUserSchema): Promise<IUserDoc> =>
   User.create(userBody);
 
 /**
@@ -26,7 +26,7 @@ export const getUserById = async (
  */
 export const updateUser = async (
   userId: mongoose.Types.ObjectId,
-  userBody: Partial<IUserData>
+  userBody: Partial<IUserSchema>
 ) => {
   const user = await getUserById(userId);
 
