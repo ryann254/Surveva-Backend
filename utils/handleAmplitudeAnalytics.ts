@@ -1,4 +1,4 @@
-import { config } from '../config';
+import { config, logger } from '../config';
 
 // TODO: Replace the following fields: user_id, age, gender, country, region and platform.
 export const sendAmplitudeAnalytics = async (eventType: string) => {
@@ -30,10 +30,10 @@ export const sendAmplitudeAnalytics = async (eventType: string) => {
     });
 
     if (result.ok) {
-      console.log('Amplitude analytics sent successfully');
+      logger.info('Amplitude analytics sent successfully');
     }
   } catch (error) {
-    console.error('Amplitude analytics not sent:', error);
+    logger.error('Amplitude analytics not sent:', error);
   }
 };
 
@@ -60,9 +60,9 @@ export const deleteAmplitudeAnalytics = async (userIds: string[]) => {
     });
 
     if (result.ok) {
-      console.log('Amplitude analytics deleted successfully');
+      logger.info('Amplitude analytics deleted successfully');
     }
   } catch (error) {
-    console.log('Amplitude analytics not deleted:', error);
+    logger.info('Amplitude analytics not deleted:', error);
   }
 };

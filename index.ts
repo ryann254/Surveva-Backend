@@ -6,7 +6,7 @@ import helmet from 'helmet';
 
 import routes from './routes';
 import mongoose from 'mongoose';
-import { config } from './config';
+import { config, logger } from './config';
 
 const app = express();
 
@@ -27,21 +27,22 @@ app.use('/api/v1', routes);
 
 const PORT = 5000 || process.env.PORT;
 
+mongoose.set('strictQuery', config.nodeEnv === 'development' ? true : false);
 // Connect to MongoDB and run server.
 mongoose
   .connect(config.mongoDBUri)
   .then(async () => {
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
     // Text index the `question` field in the Polls collection to allow for text searching later on.
     const db = mongoose.connection.db;
     const pollsCollection = db.collection('polls');
     await pollsCollection.createIndex({ question: 'text' });
-    console.log('Indexed pollsCollection');
+    logger.info('Indexed pollsCollection');
 
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      logger.info(`Server is running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Error connecting to MongoDB', err);
+    logger.error('Error connecting to MongoDB', err);
   });
