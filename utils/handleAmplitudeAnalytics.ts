@@ -1,7 +1,9 @@
+import { config } from '../config';
+
 // TODO: Replace the following fields: user_id, age, gender, country, region and platform.
 export const sendAmplitudeAnalytics = async (eventType: string) => {
   const body = {
-    api_key: process.env.AMPLITUDE_API_KEY,
+    api_key: config.amplitudeApiKey,
     events: [
       {
         user_id: '668e26f8ead3682a9d57bdb9',
@@ -18,7 +20,7 @@ export const sendAmplitudeAnalytics = async (eventType: string) => {
   };
 
   try {
-    const result = await fetch(process.env.AMPLITUDE_SEND_ANALYTICS_URL || '', {
+    const result = await fetch(config.amplitudeSendAnalyticsUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -43,22 +45,19 @@ export const deleteAmplitudeAnalytics = async (userIds: string[]) => {
     requester: 'admin@surveva.com',
   };
 
-  const credentials = `${process.env.AMPLITUDE_API_KEY}:${process.env.AMPLITUDE_SECRET_KEY}`;
+  const credentials = `${config.amplitudeApiKey}:${config.amplitudeSecretKey}`;
   const encodedCredentials = btoa(credentials);
 
   try {
-    const result = await fetch(
-      process.env.AMPLITUDE_DELETE_ANALYTICS_URL || '',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: '*/*',
-          Authorization: `Basic ${encodedCredentials}`,
-        },
-        body: JSON.stringify(body),
-      }
-    );
+    const result = await fetch(config.amplitudeDeleteAnalyticsUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: '*/*',
+        Authorization: `Basic ${encodedCredentials}`,
+      },
+      body: JSON.stringify(body),
+    });
 
     if (result.ok) {
       console.log('Amplitude analytics deleted successfully');

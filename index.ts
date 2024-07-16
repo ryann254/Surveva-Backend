@@ -1,13 +1,12 @@
 import express from 'express';
-import dotenv from 'dotenv';
+
 import httpStatus from 'http-status';
 import cors from 'cors';
 import helmet from 'helmet';
 
 import routes from './routes';
 import mongoose from 'mongoose';
-
-dotenv.config();
+import { config } from './config';
 
 const app = express();
 
@@ -30,7 +29,7 @@ const PORT = 5000 || process.env.PORT;
 
 // Connect to MongoDB and run server.
 mongoose
-  .connect(process.env.MONGODB_URI || '')
+  .connect(config.mongoDBUri)
   .then(async () => {
     console.log('Connected to MongoDB');
     // Text index the `question` field in the Polls collection to allow for text searching later on.

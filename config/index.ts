@@ -8,5 +8,16 @@ import {
   Origin,
   origin,
 } from './rolesAndGender';
+import config from './config';
 
-export { roles, gender, Roles, Gender, Platform, platform, Origin, origin };
+export {
+  roles,
+  gender,
+  Roles,
+  Gender,
+  Platform,
+  platform,
+  Origin,
+  origin,
+  config,
+};
