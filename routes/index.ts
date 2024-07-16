@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import PollRoute from './poll.route';
 import UserRoute from './user.route';
+import CategoryRoute from './category.route';
 
 interface IRoute {
   path: string;
@@ -18,6 +19,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/user',
     route: UserRoute,
+  },
+  {
+    path: '/category',
+    route: CategoryRoute,
   },
 ];
 

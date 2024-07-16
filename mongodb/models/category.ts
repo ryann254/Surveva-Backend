@@ -1,16 +1,20 @@
 import mongoose, { Document } from 'mongoose';
+import { z } from 'zod';
 
 const CategorySchema = new mongoose.Schema<ICategoryDoc>({
   name: {
     type: String,
     required: true,
     trim: true,
+    unique: true,
   },
 });
 
-export interface ICategorySchema {
-  name: string;
-}
+export const CategoryObject = z.object({
+  name: z.string().min(3),
+});
+
+export type ICategorySchema = z.infer<typeof CategoryObject>;
 
 export interface ICategoryDoc extends ICategorySchema, Document {}
 

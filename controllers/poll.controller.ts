@@ -8,10 +8,7 @@ import {
   searchPolls,
   updatePoll,
 } from '../services/poll.service';
-import {
-  deleteAmplitudeAnalytics,
-  sendAmplitudeAnalytics,
-} from '../utils/handleAmplitudeAnalytics';
+import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 
 // TODO: Add better request data validation - Remove all `throw new Error...`
@@ -40,7 +37,7 @@ export const updatePollController = async (req: Request, res: Response) => {
   if (!req.params.pollId) throw new Error('Poll not found');
 
   const parsedPoll = QMSObject.partial().parse(req.body);
-  const poll = await updatePoll(req.params.pollId, req.body);
+  const poll = await updatePoll(req.params.pollId, parsedPoll);
   return res.status(httpStatus.OK).json(poll);
 };
 

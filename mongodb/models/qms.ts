@@ -1,7 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { z } from 'zod';
-import { Gender } from '../../config';
-import { Origin } from '../../config/rolesAndGender';
+import { Gender, Origin } from '../../config';
 
 const QMSSchema = new mongoose.Schema<IQMSDoc>(
   {
