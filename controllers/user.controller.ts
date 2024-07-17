@@ -16,7 +16,8 @@ import catchAsync from '../utils/catchAsync';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body) throw new Error('Request body is empty');
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const parsedUser = UserObject.parse(req.body);
     const user = await createUser(parsedUser);
@@ -44,7 +45,8 @@ export const updateUserController = catchAsync(
 
 export const getUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.userId) throw new Error('User not found');
+    if (!req.params.userId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
     const user = await getUserById(req.params.userId);
     return res.status(httpStatus.OK).json(user);
@@ -53,7 +55,8 @@ export const getUserController = catchAsync(
 
 export const deleteUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.userId) throw new Error('User not found');
+    if (!req.params.userId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
     await deleteUser(req.params.userId);
     // Delete user analytics from Amplitude

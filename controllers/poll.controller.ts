@@ -11,11 +11,12 @@ import {
 import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
+import { ApiError } from '../errors';
 
-// TODO: Remove all `throw new Error...`
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body) throw new Error('Request body is empty');
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const parsedPoll = QMSObject.parse(req.body);
     const poll = await createPoll(parsedPoll);
@@ -30,7 +31,8 @@ export const createPollController = catchAsync(
 
 export const searchPollsController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.searchTerm) throw new Error('Search term is empty');
+    if (!req.params.searchTerm)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Search term is empty');
 
     const polls = await searchPolls(req.params.searchTerm);
     return res.status(httpStatus.OK).json(polls);
@@ -39,8 +41,10 @@ export const searchPollsController = catchAsync(
 
 export const updatePollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body) throw new Error('Request body is empty');
-    if (!req.params.pollId) throw new Error('Poll not found');
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+    if (!req.params.pollId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
     const parsedPoll = QMSObject.partial().parse(req.body);
     const poll = await updatePoll(req.params.pollId, parsedPoll);
@@ -57,7 +61,8 @@ export const getAllPollsController = catchAsync(
 
 export const getPollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.pollId) throw new Error('Poll not found');
+    if (!req.params.pollId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
     const poll = await getPollById(req.params.pollId);
     return res.status(httpStatus.OK).json(poll);
@@ -66,7 +71,8 @@ export const getPollController = catchAsync(
 
 export const deletePollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.pollId) throw new Error('Poll not found');
+    if (!req.params.pollId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
     await deletePoll(req.params.pollId);
     return res

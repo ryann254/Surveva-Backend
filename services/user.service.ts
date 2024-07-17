@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import User, { IUserDoc, IUserSchema } from '../mongodb/models/user';
+import httpStatus from 'http-status';
+import { ApiError } from '../errors';
 
 /**
  * Create user
@@ -30,7 +32,11 @@ export const updateUser = async (
 ) => {
   const user = await getUserById(userId);
 
-  if (!user) throw new Error('User not found');
+  if (!user)
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `User with id: ${userId} does not exist`
+    );
 
   Object.assign(user, userBody);
   await user.save();

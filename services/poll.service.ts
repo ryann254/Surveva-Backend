@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
+import httpStatus from 'http-status';
+import { ApiError } from '../errors';
 
 /**
  * Create a poll
@@ -55,7 +57,11 @@ export const updatePoll = async (
 ): Promise<IQMSDoc> => {
   const poll = await getPollById(pollId);
 
-  if (!poll) throw new Error('Poll not found');
+  if (!poll)
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Poll with id: ${pollId} does not exist`
+    );
 
   Object.assign(poll, pollBody);
   await poll.save();

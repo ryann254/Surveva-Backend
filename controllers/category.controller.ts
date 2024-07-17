@@ -8,11 +8,12 @@ import {
   updateCategory,
 } from '../services/category.service';
 import catchAsync from '../utils/catchAsync';
+import { ApiError } from '../errors';
 
-// TODO: Remove all `throw new Error...`
 export const createCategoryController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body) throw new Error('Request body is empty');
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const parsedCategory = CategoryObject.parse(req.body);
     const category = await createCategory(parsedCategory);
@@ -30,8 +31,10 @@ export const getAllCategoriesController = catchAsync(
 
 export const updateCategoryController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body) throw new Error('Request body is empty');
-    if (!req.params.categoryId) throw new Error('Category id is empty');
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+    if (!req.params.categoryId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');
 
     const parsedCategory = CategoryObject.partial().parse(req.body);
     const category = await updateCategory(
@@ -45,7 +48,8 @@ export const updateCategoryController = catchAsync(
 
 export const deleteCategoryController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.params.categoryId) throw new Error('Category id is empty');
+    if (!req.params.categoryId)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');
 
     await deleteCategory(req.params.categoryId);
 

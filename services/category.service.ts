@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { ICategoryDoc, ICategorySchema } from '../mongodb/models/category';
 import Category from '../mongodb/models/category';
+import { ApiError } from '../errors';
+import httpStatus from 'http-status';
 
 /**
  * Create category
@@ -31,7 +33,10 @@ export const updateCategory = async (
   const category = await Category.findById(categoryId);
 
   if (!category) {
-    throw new Error(`Category with id: ${categoryId} does not exist`);
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Category with id: ${categoryId} does not exist`
+    );
   }
 
   Object.assign(category, categoryBody);
