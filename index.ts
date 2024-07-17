@@ -6,9 +6,21 @@ import helmet from 'helmet';
 
 import routes from './routes';
 import mongoose from 'mongoose';
-import { config, logger } from './config';
+import {
+  config,
+  logger,
+  errorHandler as errorLogger,
+  successHandler,
+} from './config';
+import { ApiError, errorHandler } from './errors';
+import { errorConverter } from './errors/error';
 
 const app = express();
+
+if (config.nodeEnv !== 'test') {
+  app.use(errorLogger);
+  app.use(successHandler);
+}
 
 // Set security HTTP headers
 app.use(helmet());
@@ -46,3 +58,35 @@ mongoose
   .catch((err) => {
     logger.error('Error connecting to MongoDB', err);
   });
+
+// convert error to ApiError, if needed
+app.use(errorConverter);
+
+app.use(errorHandler);
+
+let server: any;
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      logger.info('Server closed');
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
+
+const unexpectedErrorHandler = (error: string) => {
+  logger.error(error);
+  exitHandler();
+};
+
+process.on('uncaughtException', unexpectedErrorHandler);
+process.on('unhandledRejection', unexpectedErrorHandler);
+
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received');
+  if (server) {
+    server.close();
+  }
+});

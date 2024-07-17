@@ -6,7 +6,7 @@ interface LoggingInfo {
   message: string;
 }
 
-const changeErrorFormat = winston.format((info: LoggingInfo) => {
+const enumerateErrorFormat = winston.format((info: LoggingInfo) => {
   if (info instanceof Error) {
     Object.assign(info, { message: info.stack });
   }
@@ -16,7 +16,7 @@ const changeErrorFormat = winston.format((info: LoggingInfo) => {
 const logger = winston.createLogger({
   level: config.nodeEnv === 'development' ? 'debug' : 'info',
   format: winston.format.combine(
-    changeErrorFormat(),
+    enumerateErrorFormat(),
     config.nodeEnv === 'development'
       ? winston.format.colorize()
       : winston.format.uncolorize(),

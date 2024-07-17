@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import { z } from 'zod';
 import {
   createUser,
   deleteUser,
@@ -12,6 +11,7 @@ import {
   sendAmplitudeAnalytics,
 } from '../utils/handleAmplitudeAnalytics';
 import { UserObject } from '../mongodb/models/user';
+import { ApiError } from '../errors';
 
 export const createUserController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
@@ -27,8 +27,12 @@ export const createUserController = async (req: Request, res: Response) => {
 };
 
 export const updateUserController = async (req: Request, res: Response) => {
-  if (!req.body) throw new Error('Request body is empty');
-  if (!req.params.userId) throw new Error('User not found');
+  if (!req.body)
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ error: 'Request body is empty' });
+  if (req.params.userId === '1')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
   const parsedUser = UserObject.partial().parse(req.body);
   const user = await updateUser(req.params.userId, parsedUser);

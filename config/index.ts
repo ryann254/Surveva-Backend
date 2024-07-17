@@ -10,6 +10,7 @@ import {
 } from './rolesAndGender';
 import config from './config';
 import logger from './logger';
+import { errorHandler, successHandler } from './morgan';
 
 export {
   roles,
@@ -22,4 +23,6 @@ export {
   origin,
   config,
   logger,
+  errorHandler,
+  successHandler,
 };
