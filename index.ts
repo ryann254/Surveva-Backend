@@ -81,6 +81,7 @@ const unexpectedErrorHandler = (error: string) => {
   exitHandler();
 };
 
+// Incase of any unexpected error, log it and exit the process.
 process.on('uncaughtException', unexpectedErrorHandler);
 process.on('unhandledRejection', unexpectedErrorHandler);
 
