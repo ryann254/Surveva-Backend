@@ -12,6 +12,7 @@ import {
 } from '../utils/handleAmplitudeAnalytics';
 import { UserObject } from '../mongodb/models/user';
 import { ApiError } from '../errors';
+import catchAsync from '../utils/catchAsync';
 
 export const createUserController = async (req: Request, res: Response) => {
   if (!req.body) throw new Error('Request body is empty');
@@ -26,18 +27,20 @@ export const createUserController = async (req: Request, res: Response) => {
   return res.status(httpStatus.CREATED).json(user);
 };
 
-export const updateUserController = async (req: Request, res: Response) => {
-  if (!req.body)
-    return res
-      .status(httpStatus.BAD_REQUEST)
-      .json({ error: 'Request body is empty' });
-  if (req.params.userId === '1')
-    throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
+export const updateUserController = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.body)
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: 'Request body is empty' });
+    if (req.params.userId === '1')
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-  const parsedUser = UserObject.partial().parse(req.body);
-  const user = await updateUser(req.params.userId, parsedUser);
-  return res.status(httpStatus.OK).json(user);
-};
+    const parsedUser = UserObject.partial().parse(req.body);
+    const user = await updateUser(req.params.userId, parsedUser);
+    return res.status(httpStatus.OK).json(user);
+  }
+);
 
 export const getUserController = async (req: Request, res: Response) => {
   if (!req.params.userId) throw new Error('User not found');

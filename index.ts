@@ -1,41 +1,7 @@
-import express from 'express';
-
-import httpStatus from 'http-status';
-import cors from 'cors';
-import helmet from 'helmet';
-
-import routes from './routes';
 import mongoose from 'mongoose';
-import {
-  config,
-  logger,
-  errorHandler as errorLogger,
-  successHandler,
-} from './config';
-import { ApiError, errorHandler } from './errors';
-import { errorConverter } from './errors/error';
 
-const app = express();
-
-if (config.nodeEnv !== 'test') {
-  app.use(errorLogger);
-  app.use(successHandler);
-}
-
-// Set security HTTP headers
-app.use(helmet());
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-
-// Parse urlencoded request body
-app.use(express.urlencoded({ extended: true }));
-
-// DO NOT REMOVE: Used to ping if the server is still up and running.
-app.get('/', (req, res) => {
-  return res.status(httpStatus.OK).send('Hello From Surveva Backend!');
-});
-
-app.use('/api/v1', routes);
+import { config, logger } from './config';
+import app from './app';
 
 const PORT = 5000 || process.env.PORT;
 
@@ -58,11 +24,6 @@ mongoose
   .catch((err) => {
     logger.error('Error connecting to MongoDB', err);
   });
-
-// convert error to ApiError, if needed
-app.use(errorConverter);
-
-app.use(errorHandler);
 
 let server: any;
 const exitHandler = () => {
