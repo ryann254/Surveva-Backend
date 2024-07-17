@@ -7,41 +7,50 @@ import {
   getAllCategories,
   updateCategory,
 } from '../services/category.service';
+import catchAsync from '../utils/catchAsync';
 
-// TODO: Add better request data validation - Remove all `throw new Error...`
-export const createCategoryController = async (req: Request, res: Response) => {
-  if (!req.body) throw new Error('Request body is empty');
+// TODO: Remove all `throw new Error...`
+export const createCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.body) throw new Error('Request body is empty');
 
-  const parsedCategory = CategoryObject.parse(req.body);
-  const category = await createCategory(parsedCategory);
+    const parsedCategory = CategoryObject.parse(req.body);
+    const category = await createCategory(parsedCategory);
 
-  return res.status(httpStatus.CREATED).json(category);
-};
+    return res.status(httpStatus.CREATED).json(category);
+  }
+);
 
-export const getAllCategoriesController = async (
-  req: Request,
-  res: Response
-) => {
-  const categories = await getAllCategories();
-  return res.status(httpStatus.OK).json(categories);
-};
+export const getAllCategoriesController = catchAsync(
+  async (req: Request, res: Response) => {
+    const categories = await getAllCategories();
+    return res.status(httpStatus.OK).json(categories);
+  }
+);
 
-export const updateCategoryController = async (req: Request, res: Response) => {
-  if (!req.body) throw new Error('Request body is empty');
-  if (!req.params.categoryId) throw new Error('Category id is empty');
+export const updateCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.body) throw new Error('Request body is empty');
+    if (!req.params.categoryId) throw new Error('Category id is empty');
 
-  const parsedCategory = CategoryObject.partial().parse(req.body);
-  const category = await updateCategory(req.params.categoryId, parsedCategory);
+    const parsedCategory = CategoryObject.partial().parse(req.body);
+    const category = await updateCategory(
+      req.params.categoryId,
+      parsedCategory
+    );
 
-  return res.status(httpStatus.OK).json(category);
-};
+    return res.status(httpStatus.OK).json(category);
+  }
+);
 
-export const deleteCategoryController = async (req: Request, res: Response) => {
-  if (!req.params.categoryId) throw new Error('Category id is empty');
+export const deleteCategoryController = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.params.categoryId) throw new Error('Category id is empty');
 
-  await deleteCategory(req.params.categoryId);
+    await deleteCategory(req.params.categoryId);
 
-  return res.status(httpStatus.OK).json({
-    message: 'Deleted category successfully',
-  });
-};
+    return res.status(httpStatus.OK).json({
+      message: 'Deleted category successfully',
+    });
+  }
+);
