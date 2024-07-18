@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import { ITokenUser, UserObject } from '../mongodb/models/user';
 import { createUser } from '../services/user.service';
 import { generateAuthTokens } from '../services/token.service';
+import { loginUserWithEmailAndPassword } from '../services/auth.service';
 
 export const registerController = catchAsync(
   async (req: Request, res: Response) => {
@@ -19,7 +20,16 @@ export const registerController = catchAsync(
 );
 
 export const loginController = catchAsync(
-  async (req: Request, res: Response) => {}
+  async (req: Request, res: Response) => {
+    if (!req.body)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+
+    const { email, password } = req.body;
+    const user = await loginUserWithEmailAndPassword(email, password);
+    const tokens = await generateAuthTokens(user as ITokenUser);
+
+    return res.status(httpStatus.OK).json({ user, tokens });
+  }
 );
 
 export const loginWithGoogleController = catchAsync(

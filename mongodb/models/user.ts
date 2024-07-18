@@ -1,8 +1,9 @@
-import mongoose, { Document, Types } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 import { z } from 'zod';
+import brcypt from 'bcryptjs';
 import { Gender, Roles, gender, roles, platform, Platform } from '../../config';
 
-const UserSchema = new mongoose.Schema<IUserDoc>(
+const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
   {
     username: {
       type: String,
@@ -94,6 +95,47 @@ const UserSchema = new mongoose.Schema<IUserDoc>(
   }
 );
 
+/**
+ * Check if email is taken
+ * @param {string} email
+ * @param {mongoose.Types.ObjectId} [excludeUserId] - The id of the user to be excluded
+ * @returns {Promise<boolean>}
+ */
+UserSchema.static(
+  'isEmailTaken',
+  async function (
+    email: string,
+    excludedUserId: mongoose.Types.ObjectId
+  ): Promise<boolean> {
+    const user = await this.findOne({ email, _id: { $ne: excludedUserId } });
+    return !!user;
+  }
+);
+
+/**
+ * Check if password matches the user's password.
+ * @param {string} password
+ * @returns {Promise<boolean>}
+ */
+UserSchema.method(
+  'isPasswordMatch',
+  async function (password: string): Promise<boolean> {
+    const user = this;
+    return brcypt.compare(password, user.password);
+  }
+);
+
+/**
+ * Encrypt the password before storing in the database
+ */
+UserSchema.pre('save', async function (next) {
+  const user = this;
+  if (user.isModified('password')) {
+    user.password = await brcypt.hash(user.password as string, 8);
+  }
+  next();
+});
+
 export const UserObject = z.object({
   username: z.string().min(3),
   password: z.string().min(8).optional(),
@@ -121,8 +163,17 @@ export interface ITokenUser extends IUserSchema {
   _id: mongoose.Types.ObjectId;
 }
 
-export interface IUserDoc extends IUserSchema, Document {}
+export interface IUserDoc extends IUserSchema, Document {
+  isPasswordMatch(password: string): Promise<boolean>;
+}
 
-const User = mongoose.model<IUserDoc>('User', UserSchema);
+export interface IUserModel extends Model<IUserDoc> {
+  isEmailTaken(
+    email: string,
+    excludedUserId?: mongoose.Types.ObjectId
+  ): Promise<boolean>;
+}
+
+const User = mongoose.model<IUserDoc, IUserModel>('User', UserSchema);
 
 export default User;

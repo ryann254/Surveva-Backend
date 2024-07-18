@@ -8,8 +8,12 @@ import { ApiError } from '../errors';
  * @param {IUserData} userBody
  * @returns {Promise<IUserDoc>}
  */
-export const createUser = async (userBody: IUserSchema): Promise<IUserDoc> =>
-  User.create(userBody);
+export const createUser = async (userBody: IUserSchema): Promise<IUserDoc> => {
+  if (await User.isEmailTaken(userBody.email)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+  }
+  return User.create(userBody);
+};
 
 /**
  * Get user by id.
@@ -19,6 +23,13 @@ export const createUser = async (userBody: IUserSchema): Promise<IUserDoc> =>
 export const getUserById = async (
   userId: mongoose.Types.ObjectId
 ): Promise<IUserDoc | null> => User.findById(userId);
+
+/**
+ * Get user by email
+ * @param {string} email
+ * @returns {Promise<IUserDoc | null>}
+ */
+export const getUserByEmail = async (email: string) => User.findOne({ email });
 
 /**
  * Update user
