@@ -1,8 +1,9 @@
 import { Router } from 'express';
 
-import PollRoute from './poll.route';
-import UserRoute from './user.route';
-import CategoryRoute from './category.route';
+import PollRoute from './poll.routes';
+import UserRoute from './user.routes';
+import CategoryRoute from './category.routes';
+import AuthRoute from './auth.routes';
 
 interface IRoute {
   path: string;
@@ -12,6 +13,10 @@ interface IRoute {
 const router = Router();
 
 const defaultIRoute: IRoute[] = [
+  {
+    path: '/auth',
+    route: AuthRoute,
+  },
   {
     path: '/poll',
     route: PollRoute,
