@@ -116,6 +116,11 @@ export const UserObject = z.object({
 
 export type IUserSchema = z.infer<typeof UserObject>;
 
+// Used to generate tokens for a user
+export interface ITokenUser extends IUserSchema {
+  _id: mongoose.Types.ObjectId;
+}
+
 export interface IUserDoc extends IUserSchema, Document {}
 
 const User = mongoose.model<IUserDoc>('User', UserSchema);

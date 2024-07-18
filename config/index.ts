@@ -7,7 +7,9 @@ import {
   platform,
   Origin,
   origin,
-} from './rolesAndGender';
+  tokenTypes,
+  TokenTypes,
+} from './enums';
 import config from './config';
 import logger from './logger';
 import { errorHandler, successHandler } from './morgan';
@@ -25,4 +27,6 @@ export {
   logger,
   errorHandler,
   successHandler,
+  tokenTypes,
+  TokenTypes,
 };

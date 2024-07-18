@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
 import httpStatus from 'http-status';
-import { UserObject } from '../mongodb/models/user';
+import { ITokenUser, UserObject } from '../mongodb/models/user';
 import { createUser } from '../services/user.service';
+import { generateAuthTokens } from '../services/token.service';
 
 export const registerController = catchAsync(
   async (req: Request, res: Response) => {
@@ -11,6 +12,9 @@ export const registerController = catchAsync(
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     const parsedUser = UserObject.parse(req.body);
     const user = await createUser(parsedUser);
+    const tokens = await generateAuthTokens(user as ITokenUser);
+
+    return res.status(httpStatus.CREATED).json({ user, tokens });
   }
 );
 
