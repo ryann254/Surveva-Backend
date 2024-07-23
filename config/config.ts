@@ -15,6 +15,11 @@ const envSchema = z.object({
   jwtRefreshExpirationDays: z.string(),
   jwtResetPasswordExpirationMinutes: z.string(),
   jwtVerifyEmailExpirationMinutes: z.string(),
+  smptHost: z.string(),
+  smptPort: z.string(),
+  smptUsername: z.string(),
+  smptPassword: z.string(),
+  emailFrom: z.string(),
 });
 
 const config = envSchema.parse({
@@ -31,6 +36,11 @@ const config = envSchema.parse({
     process.env.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
   jwtVerifyEmailExpirationMinutes:
     process.env.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
+  smptHost: process.env.SMTP_HOST,
+  smptPort: process.env.SMTP_PORT,
+  smptUsername: process.env.SMTP_USERNAME,
+  smptPassword: process.env.SMTP_PASSWORD,
+  emailFrom: process.env.EMAIL_FROM,
 });
 
 export default config;

@@ -2,6 +2,7 @@ import mongoose, { Document, Model } from 'mongoose';
 import { z } from 'zod';
 import brcypt from 'bcryptjs';
 import { Gender, Roles, gender, roles, platform, Platform } from '../../config';
+import { AccessAndRefreshTokens } from './token';
 
 const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
   {
@@ -172,6 +173,11 @@ export interface IUserModel extends Model<IUserDoc> {
     email: string,
     excludedUserId?: mongoose.Types.ObjectId
   ): Promise<boolean>;
+}
+
+export interface IUserWithTokens {
+  user: IUserDoc;
+  tokens: AccessAndRefreshTokens;
 }
 
 const User = mongoose.model<IUserDoc, IUserModel>('User', UserSchema);
