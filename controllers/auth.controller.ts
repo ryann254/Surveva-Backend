@@ -15,10 +15,9 @@ import {
   loginUserWithGoogleOrFacebook,
   logout,
   resetPassword,
-  sendVerificationEmail,
-  verifyEmail,
 } from '../services/auth.service';
 import { logger } from '../config';
+import { sendVerificationEmail, verifyEmail } from '../services/email.service';
 
 export const registerController = catchAsync(
   async (req: Request, res: Response) => {
