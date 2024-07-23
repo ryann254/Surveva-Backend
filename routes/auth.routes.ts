@@ -2,8 +2,7 @@ import { Router } from 'express';
 import {
   forgotPasswordController,
   loginController,
-  loginWithFacebookController,
-  loginWithGoogleController,
+  loginWithGoogleOrFacebookController,
   logoutController,
   refreshTokensController,
   registerController,
@@ -16,8 +15,7 @@ const router = Router();
 
 router.post('/register', registerController);
 router.post('/login', loginController);
-router.post('/google', loginWithGoogleController);
-router.post('/facebook', loginWithFacebookController);
+router.post('/social', loginWithGoogleOrFacebookController);
 router.post('/logout', logoutController);
 router.post('/refresh-tokens', refreshTokensController);
 router.post('/forgot-password', forgotPasswordController);

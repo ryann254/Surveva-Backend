@@ -5,8 +5,16 @@ import Token, {
   AccessAndRefreshTokens,
   ITokenDoc,
 } from './../mongodb/models/token';
-import { ITokenUser, IUserDoc, IUserSchema } from '../mongodb/models/user';
-import { config, TokenTypes } from '../config';
+import {
+  ITokenUser,
+  IUserDoc,
+  IUserSchema,
+  IUserWithTokens,
+} from '../mongodb/models/user';
+import { config, logger, TokenTypes } from '../config';
+import { ApiError } from '../errors';
+import httpStatus from 'http-status';
+import { getUserByEmail, getUserById } from './user.service';
 
 /**
  * Generate token
@@ -27,6 +35,29 @@ export const generateToken = (
     type,
   };
   return jwt.sign(payload, config.jwtSecret);
+};
+
+/**
+ * Verify token and return token doc
+ * @param {string} refreshToken
+ * @param {string} type
+ * @returns {Promise<ITokenDoc>}
+ */
+export const verifyToken = async (token: string, type: string) => {
+  const payload = jwt.verify(token, config.jwtSecret);
+
+  if (typeof payload.sub !== 'string')
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Bad user');
+
+  const tokenDoc = await Token.findOne({
+    token,
+    type,
+    user: payload.sub,
+    blacklisted: false,
+  });
+
+  if (!tokenDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token');
+  return tokenDoc;
 };
 
 /**
@@ -100,4 +131,77 @@ export const generateAuthTokens = async (
       expires: refreshTokenExpires.toDate(),
     },
   };
+};
+
+/**
+ * Refresh auth tokens
+ * @param {string} refreshToken
+ * @returns {Promise<IUserWithTokens>}
+ */
+export const refreshAuthTokens = async (
+  refreshToken: string
+): Promise<IUserWithTokens> => {
+  const refreshTokenDoc = await verifyToken(refreshToken, TokenTypes.REFRESH);
+  const user = await getUserById(
+    new mongoose.Types.ObjectId(refreshTokenDoc.user)
+  );
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+
+  await refreshTokenDoc.deleteOne();
+  const tokens = await generateAuthTokens(user as ITokenUser);
+  return { user, tokens };
+};
+
+/**
+ * Generate reset password token
+ * @param {string} email
+ * @returns {Promise<string>}
+ */
+export const generateResetPasswordToken = async (
+  email: string
+): Promise<string> => {
+  const user = await getUserByEmail(email);
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+
+  const expires = moment().add(
+    config.jwtResetPasswordExpirationMinutes,
+    'minutes'
+  );
+  const resetPasswordToken = generateToken(
+    user._id as mongoose.Types.ObjectId,
+    expires,
+    TokenTypes.RESET_PASSWORD
+  );
+  await saveToken(
+    resetPasswordToken,
+    user._id as mongoose.Types.ObjectId,
+    expires,
+    TokenTypes.RESET_PASSWORD
+  );
+
+  return resetPasswordToken;
+};
+
+/**
+ * Generate verify email token
+ * @param {ITokenUser} user
+ * @returns {Promise<string>}
+ */
+export const generateVerifyEmailToken = async (
+  user: ITokenUser
+): Promise<string> => {
+  const expires = moment().add(
+    config.jwtVerifyEmailExpirationMinutes,
+    'minutes'
+  );
+  const verifyEmailToken = generateToken(
+    user._id,
+    expires,
+    TokenTypes.VERIFY_EMAIL
+  );
+  await saveToken(verifyEmailToken, user._id, expires, TokenTypes.VERIFY_EMAIL);
+
+  return verifyEmailToken;
 };
