@@ -13,6 +13,7 @@ import {
 import config from './config';
 import logger from './logger';
 import { errorHandler, successHandler } from './morgan';
+import jwtStrategy from './passport';
 
 export {
   roles,
@@ -29,4 +30,5 @@ export {
   successHandler,
   tokenTypes,
   TokenTypes,
+  jwtStrategy,
 };

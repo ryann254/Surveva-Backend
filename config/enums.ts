@@ -31,10 +31,9 @@ export type RolesMap = {
   [key in Roles]: string[];
 };
 
-// TODO: Add roles for admins and users.
 const allRoles: RolesMap = {
-  admin: [],
-  user: [],
+  admin: ['manageCategories', 'managePolls', 'manageUsers'],
+  user: ['managePolls'],
 };
 
 export const roles = Object.values(Roles);

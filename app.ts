@@ -2,9 +2,15 @@ import express from 'express';
 import httpStatus from 'http-status';
 import cors from 'cors';
 import helmet from 'helmet';
+import passport from 'passport';
 
 import routes from './routes';
-import { config, errorHandler as errorLogger, successHandler } from './config';
+import {
+  config,
+  errorHandler as errorLogger,
+  successHandler,
+  jwtStrategy,
+} from './config';
 import { ApiError, errorHandler } from './errors';
 import { errorConverter } from './errors/error';
 
@@ -22,6 +28,10 @@ app.use(express.json({ limit: '50mb' }));
 
 // Parse urlencoded request body
 app.use(express.urlencoded({ extended: true }));
+
+// jwt authentication
+app.use(passport.initialize());
+passport.use('jwt', jwtStrategy);
 
 // DO NOT REMOVE: Used to ping if the server is still up and running.
 app.get('/', (req, res) => {

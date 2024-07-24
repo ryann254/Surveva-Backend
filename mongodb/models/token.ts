@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { z } from 'zod';
+import { JwtPayload } from 'jsonwebtoken';
 import { tokenTypes, TokenTypes } from '../../config';
 
 const TokenSchema = new mongoose.Schema<ITokenDoc>(
@@ -40,6 +41,13 @@ export const tokenObject = z.object({
   expires: z.date(),
   blacklisted: z.boolean(),
 });
+
+export interface IPayload extends JwtPayload {
+  sub: string;
+  iat: number;
+  exp: number;
+  type: string;
+}
 
 export interface TokenPayload {
   token: string;
