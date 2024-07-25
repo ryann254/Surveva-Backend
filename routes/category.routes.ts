@@ -5,16 +5,18 @@ import {
   getAllCategoriesController,
   updateCategoryController,
 } from '../controllers/category.controller';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
 router
   .route('/')
-  .get(getAllCategoriesController)
-  .post(createCategoryController);
+
+  .get(authMiddleware(['manageCategories']), getAllCategoriesController)
+  .post(authMiddleware(['manageCategories']), createCategoryController);
 router
   .route('/:categoryId')
-  .patch(updateCategoryController)
-  .delete(deleteCategoryController);
+  .patch(authMiddleware(['manageCategories']), updateCategoryController)
+  .delete(authMiddleware(['manageCategories']), deleteCategoryController);
 
 export default router;

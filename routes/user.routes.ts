@@ -5,14 +5,15 @@ import {
   getUserController,
   updateUserController,
 } from '../controllers/user.controller';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.route('/').post(createUserController);
+router.route('/').post(authMiddleware(['manageUsers']), createUserController);
 router
   .route('/:userId')
-  .get(getUserController)
-  .patch(updateUserController)
-  .delete(deleteUserController);
+  .get(authMiddleware(['manageUsers']), getUserController)
+  .patch(authMiddleware(['manageUsers']), updateUserController)
+  .delete(authMiddleware(['manageUsers']), deleteUserController);
 
 export default router;

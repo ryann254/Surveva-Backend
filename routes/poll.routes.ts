@@ -7,15 +7,21 @@ import {
   searchPollsController,
   updatePollController,
 } from '../controllers/poll.controller';
+import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.route('/').get(getAllPollsController).post(createPollController);
-router.route('/:searchTerm').get(searchPollsController);
+router
+  .route('/')
+  .get(authMiddleware(['managePolls']), getAllPollsController)
+  .post(authMiddleware(['managePolls']), createPollController);
+router
+  .route('/:searchTerm')
+  .get(authMiddleware(['managePolls']), searchPollsController);
 router
   .route('/:pollId')
-  .get(getPollController)
-  .patch(updatePollController)
-  .delete(deletePollController);
+  .get(authMiddleware(['managePolls']), getPollController)
+  .patch(authMiddleware(['managePolls']), updatePollController)
+  .delete(authMiddleware(['managePolls']), deletePollController);
 
 export default router;

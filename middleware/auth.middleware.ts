@@ -36,7 +36,7 @@ const verifyCallback =
   };
 
 const authMiddleware =
-  (...requiredRights: string[]) =>
+  (requiredRights: string[]) =>
   async (req: Request, res: Response, next: NextFunction) =>
     new Promise<void>((resolve, reject) => {
       passport.authenticate(
