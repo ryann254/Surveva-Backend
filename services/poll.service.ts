@@ -1,7 +1,10 @@
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import { Request } from 'express';
 import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
 import httpStatus from 'http-status';
 import { ApiError } from '../errors';
+import { config } from '../config';
 
 /**
  * Create a poll
@@ -74,3 +77,20 @@ export const updatePoll = async (
  */
 export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
   QMS.findOneAndDelete({ _id: pollId });
+
+/**
+ * Verify the poll belongs to a user
+ * @param {Request} req
+ * @returns {boolean}
+ */
+export const verifyPollOwnership = async (req: Request): Promise<boolean> => {
+  // Get the user's id from the Bearer token.
+  const authHeader = req.headers.authorization;
+  const token = authHeader.split(' ')[1];
+  const payload = jwt.verify(token, config.jwtSecret);
+
+  const pollDoc = await getPollById(req.params.pollId);
+  if (!pollDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll Not found');
+
+  return pollDoc.owner.toString() === payload.sub;
+};

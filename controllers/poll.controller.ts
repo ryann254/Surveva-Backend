@@ -7,11 +7,15 @@ import {
   getPollById,
   searchPolls,
   updatePoll,
+  verifyPollOwnership,
 } from '../services/poll.service';
 import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
+import { logger, TokenTypes } from '../config';
+import { verifyToken } from '../services/token.service';
+import mongoose from 'mongoose';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
@@ -46,9 +50,18 @@ export const updatePollController = catchAsync(
     if (!req.params.pollId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
-    const parsedPoll = QMSObject.partial().parse(req.body);
-    const poll = await updatePoll(req.params.pollId, parsedPoll);
-    return res.status(httpStatus.OK).json(poll);
+    // Use the user's id to make sure the poll belongs to the user.
+    const pollBelongsToUser = await verifyPollOwnership(req);
+    console.log(pollBelongsToUser);
+
+    if (pollBelongsToUser) {
+      const parsedPoll = QMSObject.partial().parse(req.body);
+      const poll = await updatePoll(req.params.pollId, parsedPoll);
+      return res.status(httpStatus.OK).json(poll);
+    }
+    return res
+      .status(httpStatus.FORBIDDEN)
+      .json({ message: "You're Not allowed to perform this action" });
   }
 );
 
@@ -74,9 +87,18 @@ export const deletePollController = catchAsync(
     if (!req.params.pollId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
-    await deletePoll(req.params.pollId);
-    return res
-      .status(httpStatus.OK)
-      .json({ message: 'Poll deleted successfully' });
+    // Use the user's id to make sure the poll belongs to the user.
+    const pollBelongsToUser = await verifyPollOwnership(req);
+
+    if (pollBelongsToUser) {
+      await deletePoll(req.params.pollId);
+      return res
+        .status(httpStatus.OK)
+        .json({ message: 'Poll deleted successfully' });
+    }
+    return res.status(
+      httpStatus.FORBIDDEN,
+      "You're not allowed to perform this action"
+    );
   }
 );

@@ -16,6 +16,10 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
         trim: true,
       },
     ],
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -53,6 +57,7 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
 export const QMSObject = z.object({
   question: z.string(),
   answers: z.array(z.string()),
+  owner: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
   category: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
   language: z.string(),
   servedAt: z.union([z.date(), z.string()]).optional(),

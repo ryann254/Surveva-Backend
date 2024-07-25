@@ -33,7 +33,7 @@ export type RolesMap = {
 
 const allRoles: RolesMap = {
   admin: ['manageCategories', 'managePolls', 'manageUsers'],
-  user: ['managePolls'],
+  user: ['managePolls', 'manageUsers'],
 };
 
 export const roles = Object.values(Roles);
