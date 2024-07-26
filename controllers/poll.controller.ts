@@ -52,7 +52,6 @@ export const updatePollController = catchAsync(
 
     // Use the user's id to make sure the poll belongs to the user.
     const pollBelongsToUser = await verifyPollOwnership(req);
-    console.log(pollBelongsToUser);
 
     if (pollBelongsToUser) {
       const parsedPoll = QMSObject.partial().parse(req.body);
@@ -96,9 +95,8 @@ export const deletePollController = catchAsync(
         .status(httpStatus.OK)
         .json({ message: 'Poll deleted successfully' });
     }
-    return res.status(
-      httpStatus.FORBIDDEN,
-      "You're not allowed to perform this action"
-    );
+    return res
+      .status(httpStatus.FORBIDDEN)
+      .json({ message: "You're Not allowed to perform this action" });
   }
 );

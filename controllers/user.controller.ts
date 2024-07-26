@@ -5,6 +5,7 @@ import {
   deleteUser,
   getUserById,
   updateUser,
+  verifyAccountOwnership,
 } from '../services/user.service';
 import {
   deleteAmplitudeAnalytics,
@@ -37,9 +38,16 @@ export const updateUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    const parsedUser = UserObject.partial().parse(req.body);
-    const user = await updateUser(req.params.userId, parsedUser);
-    return res.status(httpStatus.OK).json(user);
+    const accountBelongsToUser = await verifyAccountOwnership(req);
+
+    if (accountBelongsToUser) {
+      const parsedUser = UserObject.partial().parse(req.body);
+      const user = await updateUser(req.params.userId, parsedUser);
+      return res.status(httpStatus.OK).json(user);
+    }
+    return res
+      .status(httpStatus.FORBIDDEN)
+      .json({ message: "You're Not allowed to perform this action" });
   }
 );
 
@@ -58,11 +66,17 @@ export const deleteUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    await deleteUser(req.params.userId);
-    // Delete user analytics from Amplitude
-    deleteAmplitudeAnalytics([req.params.userId]);
+    const accountBelongsToUser = await verifyAccountOwnership(req);
+    if (accountBelongsToUser) {
+      await deleteUser(req.params.userId);
+      // Delete user analytics from Amplitude
+      deleteAmplitudeAnalytics([req.params.userId]);
+      return res
+        .status(httpStatus.OK)
+        .json({ message: 'User deleted successfully' });
+    }
     return res
-      .status(httpStatus.OK)
-      .json({ message: 'User deleted successfully' });
+      .status(httpStatus.FORBIDDEN)
+      .json({ message: "You're Not allowed to perform this action" });
   }
 );

@@ -84,13 +84,11 @@ export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
  * @returns {boolean}
  */
 export const verifyPollOwnership = async (req: Request): Promise<boolean> => {
-  // Get the user's id from the Bearer token.
-  const authHeader = req.headers.authorization;
-  const token = authHeader.split(' ')[1];
-  const payload = jwt.verify(token, config.jwtSecret);
+  // Admins have rights to update all polls.
+  if (req.user.role === 'admin') return true;
 
   const pollDoc = await getPollById(req.params.pollId);
   if (!pollDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll Not found');
 
-  return pollDoc.owner.toString() === payload.sub;
+  return pollDoc.owner.toString() === req.user._id.toString();
 };

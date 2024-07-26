@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
-import User, { IUserDoc, IUserSchema } from '../mongodb/models/user';
+import User, {
+  ITokenUser,
+  IUserDoc,
+  IUserSchema,
+} from '../mongodb/models/user';
 import httpStatus from 'http-status';
+import { Request } from 'express';
 import { ApiError } from '../errors';
 
 /**
@@ -60,3 +65,18 @@ export const updateUser = async (
  */
 export const deleteUser = async (userId: mongoose.Types.ObjectId) =>
   User.findOneAndDelete({ _id: userId });
+
+/**
+ * Verify the account belongs to a user
+ * @param {Request} req
+ * @returns {boolean}
+ */
+export const verifyAccountOwnership = async (
+  req: Request
+): Promise<boolean> => {
+  // Admins have rights to update all polls.
+  if (req.user.role === 'admin') return true;
+
+  // Check if the account the user is logged in with is the same as the one he/she is trying to update
+  return req.params.userId === req.user._id.toString();
+};
