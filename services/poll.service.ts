@@ -4,6 +4,7 @@ import { Request } from 'express';
 import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
 import httpStatus from 'http-status';
 import { ApiError } from '../errors';
+import OpenAI from 'openai';
 import { config } from '../config';
 
 /**
@@ -91,4 +92,18 @@ export const verifyPollOwnership = async (req: Request): Promise<boolean> => {
   if (!pollDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll Not found');
 
   return pollDoc.owner.toString() === req.user._id.toString();
+};
+
+/**
+ * Checks if content is harmful using Open Ai's API
+ * @param {string} question
+ * @returns {boolean}
+ */
+export const checkForModeration = async (question: string) => {
+  const openai = new OpenAI({ apiKey: config.openAiApiSecretKey });
+  const moderation = await openai.moderations.create({
+    input: question,
+  });
+
+  return moderation.results[0].flagged;
 };

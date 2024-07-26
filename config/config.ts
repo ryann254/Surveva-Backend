@@ -6,6 +6,7 @@ dotenv.config();
 const envSchema = z.object({
   nodeEnv: z.enum(['development', 'production', 'test']),
   mongoDBUri: z.string(),
+  openAiApiSecretKey: z.string(),
   amplitudeSendAnalyticsUrl: z.string(),
   amplitudeDeleteAnalyticsUrl: z.string(),
   amplitudeApiKey: z.string(),
@@ -25,6 +26,7 @@ const envSchema = z.object({
 const config = envSchema.parse({
   nodeEnv: process.env.NODE_ENV,
   mongoDBUri: process.env.MONGODB_URI,
+  openAiApiSecretKey: process.env.OPEN_AI_API_SECRET_KEY,
   amplitudeSendAnalyticsUrl: process.env.AMPLITUDE_SEND_ANALYTICS_URL,
   amplitudeDeleteAnalyticsUrl: process.env.AMPLITUDE_DELETE_ANALYTICS_URL,
   amplitudeApiKey: process.env.AMPLITUDE_API_KEY,

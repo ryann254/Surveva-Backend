@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import {
+  checkForModeration,
   createPoll,
   deletePoll,
   getAllPolls,
@@ -23,13 +24,24 @@ export const createPollController = catchAsync(
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const parsedPoll = QMSObject.parse(req.body);
-    const poll = await createPoll(parsedPoll);
-    // Send `poll_created` analytic to Amplitude
-    if (poll) {
-      sendAmplitudeAnalytics('poll_created');
-    }
+    // Check for moderation using the open ai api
+    const contentIsHarmful = await checkForModeration(parsedPoll.question);
 
-    return res.status(httpStatus.CREATED).json(poll);
+    if (!contentIsHarmful) {
+      // Check for category and language from the open ai api
+
+      const poll = await createPoll(parsedPoll);
+      // Send `poll_created` analytic to Amplitude
+      if (poll) {
+        sendAmplitudeAnalytics('poll_created');
+      }
+
+      return res.status(httpStatus.CREATED).json(poll);
+    }
+    return res.status(httpStatus.BAD_REQUEST).json({
+      message:
+        'The content you have posted is potentially harmful. Edit it and try again',
+    });
   }
 );
 
@@ -53,10 +65,20 @@ export const updatePollController = catchAsync(
     // Use the user's id to make sure the poll belongs to the user.
     const pollBelongsToUser = await verifyPollOwnership(req);
 
-    if (pollBelongsToUser) {
+    if (pollBelongsToUser && req.body.question) {
       const parsedPoll = QMSObject.partial().parse(req.body);
-      const poll = await updatePoll(req.params.pollId, parsedPoll);
-      return res.status(httpStatus.OK).json(poll);
+      // Check for moderation using the open ai api
+      const contentIsHarmful = await checkForModeration(
+        parsedPoll.question || ''
+      );
+      if (!contentIsHarmful) {
+        const poll = await updatePoll(req.params.pollId, parsedPoll);
+        return res.status(httpStatus.OK).json(poll);
+      }
+      return res.status(httpStatus.BAD_REQUEST).json({
+        message:
+          'The content you have posted is potentially harmful. Edit it and try again',
+      });
     }
     return res
       .status(httpStatus.FORBIDDEN)

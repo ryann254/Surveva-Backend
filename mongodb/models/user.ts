@@ -43,6 +43,8 @@ const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       type: String,
       enum: roles,
       default: Roles.USER,
+      // Once the role is created, it cannot be changed.
+      immutable: true,
     },
     emailVerified: {
       type: Boolean,
