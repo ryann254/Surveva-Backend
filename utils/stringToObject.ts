@@ -1,7 +1,7 @@
 export const stringToObject = (
   str: string | null
 ): { category: string; language: string } | null => {
-  if (str) {
+  if (str && str.includes('category') && str.includes('language')) {
     // Remove curly braces
     str = str.substring(1, str.length - 1);
     // Split string into key-value pairs

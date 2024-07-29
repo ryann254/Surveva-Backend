@@ -60,7 +60,7 @@ export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
  */
 export const updatePoll = async (
   pollId: mongoose.Types.ObjectId,
-  pollBody: Partial<IQMSSchema>
+  pollBody: IQMSSchema
 ): Promise<IQMSDoc> => {
   const poll = await getPollById(pollId);
 

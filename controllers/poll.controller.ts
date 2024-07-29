@@ -67,14 +67,16 @@ export const updatePollController = catchAsync(
     const pollBelongsToUser = await verifyPollOwnership(req);
 
     if (pollBelongsToUser && req.body.question) {
-      const parsedPoll = QMSObject.partial().parse(req.body);
+      const parsedPoll = QMSObject.parse(req.body);
       // Check for moderation using the open ai api
       const contentIsHarmful = await checkForModeration(
         parsedPoll.question || ''
       );
 
       if (!contentIsHarmful) {
-        const poll = await updatePoll(req.params.pollId, parsedPoll);
+        // Check for category and language from the open ai api
+        const updatedPoll = await checkForCategoryAndLanguageOpenAI(parsedPoll);
+        const poll = await updatePoll(req.params.pollId, updatedPoll);
         return res.status(httpStatus.OK).json(poll);
       }
       return res.status(httpStatus.BAD_REQUEST).json({
