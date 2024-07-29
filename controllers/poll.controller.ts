@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import {
+  checkForCategoryAndLanguageOpenAI,
   checkForModeration,
   createPoll,
   deletePoll,
@@ -29,8 +30,8 @@ export const createPollController = catchAsync(
 
     if (!contentIsHarmful) {
       // Check for category and language from the open ai api
-
-      const poll = await createPoll(parsedPoll);
+      const updatedPoll = await checkForCategoryAndLanguageOpenAI(parsedPoll);
+      const poll = await createPoll(updatedPoll);
       // Send `poll_created` analytic to Amplitude
       if (poll) {
         sendAmplitudeAnalytics('poll_created');
@@ -71,6 +72,7 @@ export const updatePollController = catchAsync(
       const contentIsHarmful = await checkForModeration(
         parsedPoll.question || ''
       );
+
       if (!contentIsHarmful) {
         const poll = await updatePoll(req.params.pollId, parsedPoll);
         return res.status(httpStatus.OK).json(poll);
