@@ -4,11 +4,13 @@ import {
   checkForCategoryAndLanguageGeminiFlash,
   checkForCategoryAndLanguageOpenAI,
   checkForModeration,
+  checkForNumberOfResponses,
   createPoll,
   deletePoll,
   getAllPolls,
   getPollById,
   searchPolls,
+  servePoll,
   updatePoll,
   verifyPollOwnership,
 } from '../services/poll.service';
@@ -72,10 +74,9 @@ export const updatePollController = catchAsync(
 
     if (pollBelongsToUser && req.body.question) {
       const parsedPoll = QMSObject.parse(req.body);
+
       // Check for moderation using the open ai api
-      const contentIsHarmful = await checkForModeration(
-        parsedPoll.question || ''
-      );
+      const contentIsHarmful = await checkForModeration(parsedPoll.question);
 
       if (!contentIsHarmful) {
         // Check for category and language from the open ai api
@@ -84,6 +85,11 @@ export const updatePollController = catchAsync(
             ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
             : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
         const poll = await updatePoll(req.params.pollId, updatedPoll);
+
+        // Check if poll has reached the required number of responses.
+        // If yes, then move the poll to the Served Poll collection
+        await checkForNumberOfResponses(updatedPoll, req.params.pollId);
+
         return res.status(httpStatus.OK).json(poll);
       }
       return res.status(httpStatus.BAD_REQUEST).json({
@@ -133,3 +139,15 @@ export const deletePollController = catchAsync(
       .json({ message: "You're Not allowed to perform this action" });
   }
 );
+
+// export const servePollController = catchAsync(
+//   async (req: Request, res: Response) => {
+//     if (req.params.pollId)
+//       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
+
+//     await servePoll(req.params.pollId);
+//     return res
+//       .status(httpStatus.OK)
+//       .json({ message: 'Served poll successfully' });
+//   }
+// );

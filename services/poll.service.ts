@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
+import mongoose, { startSession } from 'mongoose';
 import { Request } from 'express';
 import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
 import httpStatus from 'http-status';
@@ -10,6 +10,7 @@ import Category from '../mongodb/models/category';
 import { getAllCategories } from './category.service';
 import { jsonToObject, stringToObject } from '../utils/stringToObject';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
 
 /**
  * Create a poll
@@ -131,6 +132,7 @@ export const checkForCategoryAndLanguageGeminiFlash = async (
   }. Provide a response in a structured JSON format that matches the following model: '{"category": "category_name", "language": "language_name"}'`;
   const modelResult = await model.generateContent(prompt);
   const response = await modelResult.response;
+  logger.info(`Open Ai response: ${response.text()}`);
   const result = jsonToObject(response.text());
 
   // If OpenAI starts to hallucinate(give wrong answers), retry one time.
@@ -181,6 +183,7 @@ export const checkForCategoryAndLanguageOpenAI = async (
   });
 
   const response = languageAndCategory.choices[0].message.content;
+  logger.info(`Open Ai response: ${response}`);
   const result = stringToObject(response);
 
   // If OpenAI starts to hallucinate(give wrong answers), retry one time.
@@ -195,8 +198,49 @@ export const checkForCategoryAndLanguageOpenAI = async (
     const categoryId = categories.find(
       (category) => category.name === result.category
     )?.id;
+
+    if (!categoryId && numberOfRetries < 1)
+      checkForCategoryAndLanguageOpenAI(parsedPoll);
+
     parsedPoll.category = categoryId;
     parsedPoll.language = result.language;
   }
   return parsedPoll;
+};
+
+/**
+ * Serve poll -> When a poll reaches the required number of responses, move it to the Served Poll collection.
+ * @param {string} pollId
+ */
+export const servePoll = async (pollId: mongoose.Types.ObjectId) => {
+  try {
+    const poll = await getPollById(pollId);
+    const parsedPoll = ServedPollObject.parse(poll);
+
+    await ServedPoll.create(parsedPoll);
+    await QMS.findByIdAndDelete({ _id: pollId });
+  } catch (error) {
+    logger.error(`Unable to serve poll. Error: ${error}`);
+  }
+};
+
+/**
+ * Check for the number of responses a poll should get
+ * @param {IQMSSchema} parsedPoll
+ * @param {string} pollId
+ */
+export const checkForNumberOfResponses = async (
+  parsedPoll: IQMSSchema,
+  pollId: mongoose.Types.ObjectId
+) => {
+  // TODO: Add a service to verify the transaction Id from Google/Apple payments to know how much a user paid and hence how many responses their poll should get.
+  if (parsedPoll.paid?.length) {
+    if (parsedPoll.responses && parsedPoll?.responses?.length === 40) {
+      await servePoll(pollId);
+    }
+  } else {
+    if (parsedPoll.responses && parsedPoll?.responses?.length === 10) {
+      await servePoll(pollId);
+    }
+  }
 };

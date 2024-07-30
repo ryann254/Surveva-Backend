@@ -2,7 +2,7 @@ import mongoose, { Document } from 'mongoose';
 import { z } from 'zod';
 import { Gender, Origin } from '../../config';
 
-const QMSSchema = new mongoose.Schema<IQMSDoc>(
+const ServedPollSchema = new mongoose.Schema<IServedPollDoc>(
   {
     question: {
       type: String,
@@ -55,7 +55,7 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
   }
 );
 
-export const QMSObject = z.object({
+export const ServedPollObject = z.object({
   question: z.string(),
   answers: z.array(z.string()),
   owner: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
@@ -76,10 +76,13 @@ export const QMSObject = z.object({
     .optional(),
 });
 
-export type IQMSSchema = z.infer<typeof QMSObject>;
+export type IServedPollSchema = z.infer<typeof ServedPollObject>;
 
-export interface IQMSDoc extends IQMSSchema, Document {}
+export interface IServedPollDoc extends IServedPollSchema, Document {}
 
-const QMS = mongoose.model<IQMSDoc>('QMS', QMSSchema);
+const ServedPoll = mongoose.model<IServedPollDoc>(
+  'Served Poll',
+  ServedPollSchema
+);
 
-export default QMS;
+export default ServedPoll;
