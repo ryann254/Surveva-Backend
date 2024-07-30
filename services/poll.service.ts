@@ -8,7 +8,8 @@ import OpenAI from 'openai';
 import { config, logger } from '../config';
 import Category from '../mongodb/models/category';
 import { getAllCategories } from './category.service';
-import { stringToObject } from '../utils/stringToObject';
+import { jsonToObject, stringToObject } from '../utils/stringToObject';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
  * Create a poll
@@ -112,6 +113,45 @@ export const checkForModeration = async (question: string) => {
 };
 
 /**
+ * Check for category and language using Gemini 1.5 Flash API
+ * @param {IQMSSchema} parsedPoll
+ */
+export const checkForCategoryAndLanguageGeminiFlash = async (
+  parsedPoll: IQMSSchema
+): Promise<IQMSSchema> => {
+  const geminiAi = new GoogleGenerativeAI(config.geminiAiApiSecretKey);
+  const model = geminiAi.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const categories = await getAllCategories();
+  let numberOfRetries = 0;
+  const prompt = `Here are some categories: ${categories.map(
+    (category) => category.name
+  )}. Based on the categories provided, what category does the following text belong to(only return the categories provided, if there's no match return the closest matching category), and what language is it written in: ${
+    parsedPoll.question
+  }. Provide a response in a structured JSON format that matches the following model: '{"category": "category_name", "language": "language_name"}'`;
+  const modelResult = await model.generateContent(prompt);
+  const response = await modelResult.response;
+  const result = jsonToObject(response.text());
+
+  // If OpenAI starts to hallucinate(give wrong answers), retry one time.
+  if (!result && numberOfRetries < 1) {
+    logger.info('Retrying Category and Language dection through Gemini Ai...');
+    numberOfRetries++;
+    checkForCategoryAndLanguageGeminiFlash(parsedPoll);
+  }
+
+  // If the category and language are found update the parsedPoll object.
+  if (result) {
+    const categoryId = categories.find(
+      (category) => category.name === result.category
+    )?.id;
+    parsedPoll.category = categoryId;
+    parsedPoll.language = result.language;
+  }
+  return parsedPoll;
+};
+
+/**
  * Check for category and language using Open Ai's API
  * @param {IQMSSchema} parsedPoll
  */
@@ -128,7 +168,7 @@ export const checkForCategoryAndLanguageOpenAI = async (
     (category) => category.name
   )}. Based on the categories provided, what category does the following text belong to(only return the categories provided, if there's no match return the closest matching category), and what language is it written in: ${
     parsedPoll.question
-  }. Structure the response as follows: {categoroy: category_name, language: language_name}`;
+  }. Structure the response as follows: {category: category_name, language: language_name}`;
 
   const languageAndCategory = await openai.chat.completions.create({
     messages: [

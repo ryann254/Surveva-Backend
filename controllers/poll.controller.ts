@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import {
+  checkForCategoryAndLanguageGeminiFlash,
   checkForCategoryAndLanguageOpenAI,
   checkForModeration,
   createPoll,
@@ -15,7 +16,7 @@ import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
-import { logger, TokenTypes } from '../config';
+import { config, logger, TokenTypes } from '../config';
 import { verifyToken } from '../services/token.service';
 import mongoose from 'mongoose';
 
@@ -30,7 +31,10 @@ export const createPollController = catchAsync(
 
     if (!contentIsHarmful) {
       // Check for category and language from the open ai api
-      const updatedPoll = await checkForCategoryAndLanguageOpenAI(parsedPoll);
+      const updatedPoll =
+        config.useOpenAi === 'true'
+          ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
+          : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
       const poll = await createPoll(updatedPoll);
       // Send `poll_created` analytic to Amplitude
       if (poll) {
@@ -75,7 +79,10 @@ export const updatePollController = catchAsync(
 
       if (!contentIsHarmful) {
         // Check for category and language from the open ai api
-        const updatedPoll = await checkForCategoryAndLanguageOpenAI(parsedPoll);
+        const updatedPoll =
+          config.useOpenAi === 'true'
+            ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
+            : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
         const poll = await updatePoll(req.params.pollId, updatedPoll);
         return res.status(httpStatus.OK).json(poll);
       }
