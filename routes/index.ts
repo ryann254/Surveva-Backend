@@ -4,6 +4,7 @@ import PollRoute from './poll.routes';
 import UserRoute from './user.routes';
 import CategoryRoute from './category.routes';
 import AuthRoute from './auth.routes';
+import docsRoute from './swagger.route';
 import { config } from '../config';
 
 interface IRoute {
@@ -33,21 +34,21 @@ const defaultIRoute: IRoute[] = [
 ];
 
 // Routes available only in development
-// const devIRoute: IRoute[] = [
-//   {
-//     path: '/docs',
-//     route: docsRoute,
-//   },
-// ];
+const devIRoute: IRoute[] = [
+  {
+    path: '/docs',
+    route: docsRoute,
+  },
+];
 
 defaultIRoute.forEach((route: IRoute) => {
   router.use(route.path, route.route);
 });
 
-// if (config.nodeEnv === 'development') {
-//   devIRoute.forEach((route: IRoute) => {
-//     router.use(route.path, router.route);
-//   });
-// }
+if (config.nodeEnv === 'development') {
+  devIRoute.forEach((route: IRoute) => {
+    router.use(route.path, router.route);
+  });
+}
 
 export default router;
