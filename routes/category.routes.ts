@@ -11,7 +11,6 @@ const router = Router();
 
 router
   .route('/')
-
   .get(authMiddleware(['manageCategories']), getAllCategoriesController)
   .post(authMiddleware(['manageCategories']), createCategoryController);
 router

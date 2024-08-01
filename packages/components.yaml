@@ -1,0 +1,203 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, user]
+        profilePic:
+          type: string
+        dob:
+          type: date-time
+        location:
+          type: object
+          properties:
+            country: string
+            continent: string
+        emailVerified:
+          type: boolean
+        language:
+          type: string
+        gender:
+          type: string
+          enum: [male, female, other]
+        platform:
+          type: string
+          enum: [ios, android, web]
+        categories:
+          type: array
+          items:
+            $ref: #/components/schemas/Category
+      example:
+        id: 5ebac534954b54139806c112
+        location: { country: Liberia, continent: Africa }
+        username: Roronoa Zoro
+        password: onepiece1062
+        email: roronoazoro@strawhats.com
+        role: user
+        emailVerified: false
+        profilePic: http://placeimg.com/640/480
+        dob: 2024-06-07T12:29:42.000Z
+        language: English
+        gender: male
+        platform: android
+        categories: [666161869d833b40c6a14051, 668cdfd8f33970c10a6b344e]
+
+    Poll:
+      type: object
+      properties:
+        id:
+          type: string
+        question:
+          type: string
+        answers:
+          type: array
+          items:
+            type: string
+        owner:
+          type: string
+        category:
+          $ref: #/components/schemas/Category
+        language:
+          type: string
+        servedAt:
+          type: date-time
+        paid:
+          type: string
+        responses:
+          type: array
+          items:
+            type: object
+            properties:
+              answer:
+                type: string
+              origin:
+                type: string
+                enum: [dsa, qms]
+              geography:
+                type: string
+              age:
+                type: date-time
+              gender:
+                type: string
+                enum: [male, female, other]
+      example:
+        id: 5ebac534954b54139806c112
+        question: Is One Piece better than Naruto?
+        answers: [Yes, No, Maybe]
+        owner: 66a1192fae866998e9397354
+        category: 66a1192fae866998e9397354
+        language: English
+        servedAt: 2020-05-12T16:18:04.793Z
+        paid: 66a1192fae866998e9397354
+        responses:
+          [
+            {
+              answer: Yes,
+              origin: dsa,
+              geography: Africa,
+              age: 2020-05-12T16:18:04.793Z,
+              gender: male,
+            },
+          ]
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      example:
+        id: 5ebac534954b54139806c112
+        category: Science and Technology
+
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+        expires:
+          type: string
+          format: date-time
+      example:
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWJhYzUzNDk1NGI1NDEzOTgwNmMxMTIiLCJpYXQiOjE1ODkyOTg0ODQsImV4cCI6MTU4OTMwMDI4NH0.m1U63blB0MLej_WfB7yC2FTMnCziif9X8yzwDEfJXAg
+        expires: 2020-05-12T16:18:04.793Z
+
+    AuthTokens:
+      type: object
+      properties:
+        access:
+          $ref: '#/components/schemas/Token'
+        refresh:
+          $ref: '#/components/schemas/Token'
+
+    UserWithTokens:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        tokens:
+          $ref: '#/components/schemas/AuthTokens'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: number
+        message:
+          type: string
+
+  responses:
+    DuplicateEmail:
+      description: Email already taken
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 400
+            message: Email already taken
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 401
+            message: Please authenticate
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 403
+            message: Forbidden
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 404
+            message: Not found
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

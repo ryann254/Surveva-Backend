@@ -1,12 +1,11 @@
 import jwt from 'jsonwebtoken';
-import mongoose, { startSession } from 'mongoose';
+import mongoose from 'mongoose';
 import { Request } from 'express';
 import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
 import httpStatus from 'http-status';
 import { ApiError } from '../errors';
 import OpenAI from 'openai';
 import { config, logger } from '../config';
-import Category from '../mongodb/models/category';
 import { getAllCategories } from './category.service';
 import { jsonToObject, stringToObject } from '../utils/stringToObject';
 import { GoogleGenerativeAI } from '@google/generative-ai';
