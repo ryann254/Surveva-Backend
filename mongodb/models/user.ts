@@ -50,6 +50,10 @@ const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       type: Boolean,
       default: false,
     },
+    isCreatedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
     profilePic: {
       type: String,
       required: true,
@@ -151,6 +155,7 @@ export const UserObject = z.object({
     continent: z.string(),
   }),
   emailVerified: z.boolean().optional(),
+  isCreatedByAdmin: z.boolean(),
   language: z.string(),
   gender: z.nativeEnum(Gender),
   platform: z.nativeEnum(Platform),

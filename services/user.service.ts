@@ -7,6 +7,11 @@ import User, {
 import httpStatus from 'http-status';
 import { Request } from 'express';
 import { ApiError } from '../errors';
+import QMS from '../mongodb/models/qms';
+import { logger } from '../config';
+import ServedPoll from '../mongodb/models/served_poll';
+import { verifyToken } from './token.service';
+import Token from '../mongodb/models/token';
 
 /**
  * Create user
@@ -60,11 +65,29 @@ export const updateUser = async (
 };
 
 /**
+ * Delete all polls associated with a user
+ * @param {mongoose.Types.ObjectId} userId
+ */
+export const deleteUserPolls = async (userId: mongoose.Types.ObjectId) => {
+  const qmsResults = await QMS.deleteMany({ owner: userId });
+  const servedPollResults = await ServedPoll.deleteMany({ owner: userId });
+  logger.info(
+    `${qmsResults.deletedCount} document(s) were deleted from the QMS collection.`
+  );
+  logger.info(
+    `${servedPollResults.deletedCount} document(s) were deleted from the Served Poll collection.`
+  );
+};
+
+/**
  * Delete user
  * @param {mongoose.Types.ObjectId} userId
  */
-export const deleteUser = async (userId: mongoose.Types.ObjectId) =>
-  User.findOneAndDelete({ _id: userId });
+export const deleteUser = async (userId: mongoose.Types.ObjectId) => {
+  // Revoke user tokens
+  await Token.deleteMany({ user: userId });
+  await User.findOneAndDelete({ _id: userId });
+};
 
 /**
  * Verify the account belongs to a user

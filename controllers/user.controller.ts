@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import {
   createUser,
   deleteUser,
+  deleteUserPolls,
   getUserById,
   updateUser,
   verifyAccountOwnership,
@@ -68,9 +69,11 @@ export const deleteUserController = catchAsync(
 
     const accountBelongsToUser = await verifyAccountOwnership(req);
     if (accountBelongsToUser) {
+      // Delete all polls associated with the user.
+      await deleteUserPolls(req.params.userId);
       await deleteUser(req.params.userId);
       // Delete user analytics from Amplitude
-      deleteAmplitudeAnalytics([req.params.userId]);
+      await deleteAmplitudeAnalytics([req.params.userId]);
       return res
         .status(httpStatus.OK)
         .json({ message: 'User deleted successfully' });

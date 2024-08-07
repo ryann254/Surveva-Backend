@@ -55,7 +55,6 @@ export const verifyToken = async (token: string, type: string) => {
     user: payload.sub,
     blacklisted: false,
   });
-  console.log(tokenDoc);
 
   if (!tokenDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid token');
   return tokenDoc;

@@ -139,15 +139,3 @@ export const deletePollController = catchAsync(
       .json({ message: "You're Not allowed to perform this action" });
   }
 );
-
-// export const servePollController = catchAsync(
-//   async (req: Request, res: Response) => {
-//     if (req.params.pollId)
-//       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
-
-//     await servePoll(req.params.pollId);
-//     return res
-//       .status(httpStatus.OK)
-//       .json({ message: 'Served poll successfully' });
-//   }
-// );
