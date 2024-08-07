@@ -47,7 +47,7 @@ defaultIRoute.forEach((route: IRoute) => {
 
 if (config.nodeEnv === 'development') {
   devIRoute.forEach((route: IRoute) => {
-    router.use(route.path, router.route);
+    router.use(route.path, route.route);
   });
 }
 

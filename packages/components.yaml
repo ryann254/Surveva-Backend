@@ -37,7 +37,7 @@ components:
         categories:
           type: array
           items:
-            $ref: #/components/schemas/Category
+            $ref: '#/components/schemas/Category'
       example:
         id: 5ebac534954b54139806c112
         location: { country: Liberia, continent: Africa }
@@ -67,7 +67,7 @@ components:
         owner:
           type: string
         category:
-          $ref: #/components/schemas/Category
+          $ref: '#/components/schemas/Category'
         language:
           type: string
         servedAt:

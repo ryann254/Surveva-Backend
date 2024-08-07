@@ -20,6 +20,10 @@ const ServedPollSchema = new mongoose.Schema<IServedPollDoc>(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    isCreatedByAdmin: {
+      type: Boolean,
+      default: false,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -59,6 +63,7 @@ export const ServedPollObject = z.object({
   question: z.string(),
   answers: z.array(z.string()),
   owner: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
+  isCreatedByAdmin: z.boolean(),
   category: z.union([z.instanceof(mongoose.Types.ObjectId), z.string()]),
   language: z.string(),
   servedAt: z.union([z.date(), z.string()]).optional(),

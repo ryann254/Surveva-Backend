@@ -50,10 +50,6 @@ const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       type: Boolean,
       default: false,
     },
-    isCreatedByAdmin: {
-      type: Boolean,
-      default: false,
-    },
     profilePic: {
       type: String,
       required: true,
@@ -148,17 +144,16 @@ export const UserObject = z.object({
   password: z.string().min(8).optional(),
   email: z.string().email(),
   role: z.nativeEnum(Roles),
-  profilePic: z.string(),
+  profilePic: z.string().optional(),
   dob: z.union([z.date(), z.string()]),
   location: z.object({
     country: z.string(),
     continent: z.string(),
   }),
   emailVerified: z.boolean().optional(),
-  isCreatedByAdmin: z.boolean(),
   language: z.string(),
   gender: z.nativeEnum(Gender),
-  platform: z.nativeEnum(Platform),
+  platform: z.nativeEnum(Platform).optional(),
   categories: z.array(
     z.union([z.instanceof(mongoose.Types.ObjectId), z.string()])
   ),
