@@ -80,6 +80,7 @@ export const updatePoll = async (
  * Delete poll
  * @param {mongoose.Types.ObjectId} pollId
  */
+
 export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
   QMS.findOneAndDelete({ _id: pollId });
 
@@ -201,8 +202,8 @@ export const checkForCategoryAndLanguageOpenAI = async (
     if (!categoryId && numberOfRetries < 1)
       checkForCategoryAndLanguageOpenAI(parsedPoll);
 
-    parsedPoll.category = categoryId;
-    parsedPoll.language = result.language;
+    parsedPoll.category = categoryId || '';
+    parsedPoll.language = result.language || '';
   }
   return parsedPoll;
 };
