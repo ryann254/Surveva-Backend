@@ -184,14 +184,15 @@ export const checkForCategoryAndLanguageOpenAI = async (
 
   const response = languageAndCategory.choices[0].message.content;
   logger.info(`Open Ai response: ${response}`);
-  const result = stringToObject(response);
+  // const result = stringToObject(response);
+  let result;
 
   // If OpenAI starts to hallucinate(give wrong answers), retry one time.
-  if (!result && numberOfRetries < 1) {
-    logger.info('Retrying Category and Language dection through OpenAI...');
-    numberOfRetries++;
-    checkForCategoryAndLanguageOpenAI(parsedPoll);
-  }
+  // if (!result && numberOfRetries < 1) {
+  //   logger.info('Retrying Category and Language dection through OpenAI...');
+  //   numberOfRetries++;
+  //   checkForCategoryAndLanguageOpenAI(parsedPoll);
+  // }
 
   // If the category and language are found update the parsedPoll object.
   if (result) {
