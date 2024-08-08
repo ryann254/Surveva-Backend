@@ -27,7 +27,7 @@ export default router;
 
 /**
  * @swagger
- * /users:
+ * /user:
  *   post:
  *     summary: Create a user
  *     description: Only admins can create other users
