@@ -80,6 +80,7 @@ export const updatePoll = async (
  * Delete poll
  * @param {mongoose.Types.ObjectId} pollId
  */
+
 export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
   QMS.findOneAndDelete({ _id: pollId });
 
@@ -183,14 +184,15 @@ export const checkForCategoryAndLanguageOpenAI = async (
 
   const response = languageAndCategory.choices[0].message.content;
   logger.info(`Open Ai response: ${response}`);
-  const result = stringToObject(response);
+  // const result = stringToObject(response);
+  let result;
 
   // If OpenAI starts to hallucinate(give wrong answers), retry one time.
-  if (!result && numberOfRetries < 1) {
-    logger.info('Retrying Category and Language dection through OpenAI...');
-    numberOfRetries++;
-    checkForCategoryAndLanguageOpenAI(parsedPoll);
-  }
+  // if (!result && numberOfRetries < 1) {
+  //   logger.info('Retrying Category and Language dection through OpenAI...');
+  //   numberOfRetries++;
+  //   checkForCategoryAndLanguageOpenAI(parsedPoll);
+  // }
 
   // If the category and language are found update the parsedPoll object.
   if (result) {
@@ -201,8 +203,8 @@ export const checkForCategoryAndLanguageOpenAI = async (
     if (!categoryId && numberOfRetries < 1)
       checkForCategoryAndLanguageOpenAI(parsedPoll);
 
-    parsedPoll.category = categoryId;
-    parsedPoll.language = result.language;
+    parsedPoll.category = categoryId || '';
+    parsedPoll.language = result.language || '';
   }
   return parsedPoll;
 };
