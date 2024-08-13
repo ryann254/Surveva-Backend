@@ -94,7 +94,7 @@ export default router;
 
 /**
  * @swagger
- * /categories/{id}:
+ * /category/{id}:
  *   patch:
  *     summary: Update a category
  *     description: Only admins can update a category.
