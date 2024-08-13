@@ -30,6 +30,7 @@ const ServedPollSchema = new mongoose.Schema<IServedPollDoc>(
     },
     language: {
       type: String,
+      required: true,
       trim: true,
     },
     servedAt: {
@@ -65,7 +66,7 @@ export const ServedPollObject = z.object({
   category: z
     .union([z.instanceof(mongoose.Types.ObjectId), z.string()])
     .optional(),
-  language: z.string().optional(),
+  language: z.string(),
   servedAt: z.union([z.date(), z.string()]).optional(),
   paid: z.string().optional(),
   responses: z

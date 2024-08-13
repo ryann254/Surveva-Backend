@@ -1,10 +1,15 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { Request } from 'express';
-import QMS, { IQMSDoc, IQMSSchema } from '../mongodb/models/qms';
+import QMS, {
+  IQMSDoc,
+  IQMSSchema,
+  openAIResponseObject,
+} from '../mongodb/models/qms';
 import httpStatus from 'http-status';
 import { ApiError } from '../errors';
 import OpenAI from 'openai';
+import { zodFunction } from 'openai/helpers/zod';
 import { config, logger } from '../config';
 import { getAllCategories } from './category.service';
 import { jsonToObject, stringToObject } from '../utils/stringToObject';
@@ -157,6 +162,7 @@ export const checkForCategoryAndLanguageGeminiFlash = async (
  * Check for category and language using Open Ai's API
  * @param {IQMSSchema} parsedPoll
  */
+let numberOfRetries = 0;
 export const checkForCategoryAndLanguageOpenAI = async (
   parsedPoll: IQMSSchema
 ): Promise<IQMSSchema> => {
@@ -165,47 +171,56 @@ export const checkForCategoryAndLanguageOpenAI = async (
   });
 
   const categories = await getAllCategories();
-  let numberOfRetries = 0;
   const prompt = `Here are some categories: ${categories.map(
     (category) => category.name
   )}. Based on the categories provided, what category does the following text belong to(only return the categories provided, if there's no match return the closest matching category), and what language is it written in: ${
     parsedPoll.question
   }. Structure the response as follows: {category: category_name, language: language_name}`;
 
-  const languageAndCategory = await openai.chat.completions.create({
-    messages: [
-      {
-        role: 'system',
-        content: prompt,
-      },
-    ],
-    model: 'gpt-3.5-turbo',
-  });
+  try {
+    const languageAndCategory = await openai.beta.chat.completions.parse({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are a helpful assistant. You help users query for the data they are looking for by calling the query function.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      tools: [zodFunction({ name: 'query', parameters: openAIResponseObject })],
+    });
 
-  const response = languageAndCategory.choices[0].message.content;
-  logger.info(`Open Ai response: ${response}`);
-  const result = stringToObject(response);
+    const response =
+      languageAndCategory.choices[0].message.tool_calls[0].function
+        .parsed_arguments;
+    logger.info(`Open Ai response: ${JSON.stringify(response)}`);
+    const parsedResult = openAIResponseObject.parse(response);
 
-  // If OpenAI starts to hallucinate(give wrong answers), retry one time.
-  if (!result && numberOfRetries < 1) {
-    logger.info('Retrying Category and Language dection through OpenAI...');
-    numberOfRetries++;
-    checkForCategoryAndLanguageOpenAI(parsedPoll);
-  }
-
-  // If the category and language are found update the parsedPoll object.
-  if (result) {
     const categoryId = categories.find(
-      (category) => category.name === result.category
+      (category) => category.name === parsedResult.category
     )?.id;
 
-    if (!categoryId && numberOfRetries < 1)
+    // If there no matching category ids, it means the AI hallucinated and gave a new category. Retry the request.
+    if (!categoryId && numberOfRetries < 1) {
+      numberOfRetries += 1;
+      logger.info('Retrying category and language detection request...');
       checkForCategoryAndLanguageOpenAI(parsedPoll);
+    }
 
     parsedPoll.category = categoryId || '';
-    parsedPoll.language = result.language || '';
+    parsedPoll.language = parsedResult.language;
+    return parsedPoll;
+  } catch (error) {
+    logger.error('Failed to get category and language from open ai', error);
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Kindly try submitting your question again'
+    );
   }
-  return parsedPoll;
 };
 
 /**

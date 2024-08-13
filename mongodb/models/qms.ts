@@ -30,6 +30,7 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
     },
     language: {
       type: String,
+      required: true,
       trim: true,
     },
     servedAt: {
@@ -57,6 +58,11 @@ const QMSSchema = new mongoose.Schema<IQMSDoc>(
   }
 );
 
+export const openAIResponseObject = z.object({
+  category: z.string(),
+  language: z.string(),
+});
+
 export const QMSObject = z.object({
   question: z.string(),
   answers: z.array(z.string()),
@@ -65,7 +71,7 @@ export const QMSObject = z.object({
   category: z
     .union([z.instanceof(mongoose.Types.ObjectId), z.string()])
     .optional(),
-  language: z.string().optional(),
+  language: z.string(),
   servedAt: z.union([z.date(), z.string()]).optional(),
   paid: z.string().optional(),
   responses: z
