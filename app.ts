@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
+import cron from 'node-cron';
 
 import routes from './routes';
 import {
@@ -13,6 +14,7 @@ import {
 } from './config';
 import { ApiError, errorHandler } from './errors';
 import { errorConverter } from './errors/error';
+import { fillEmptyCategoryFields } from './services/poll.service';
 
 const app = express();
 
@@ -36,6 +38,12 @@ passport.use('jwt', jwtStrategy);
 // DO NOT REMOVE: Used to ping if the server is still up and running.
 app.get('/', (req, res) => {
   return res.status(httpStatus.OK).send('Hello From Surveva Backend!');
+});
+
+// Check for polls with empty categories every 30 minutes
+// Retry with open ai if any are found
+cron.schedule('* * * * *', async () => {
+  fillEmptyCategoryFields();
 });
 
 app.use('/api/v1', routes);

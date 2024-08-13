@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import { Request } from 'express';
 import QMS, {
@@ -102,6 +101,20 @@ export const verifyPollOwnership = async (req: Request): Promise<boolean> => {
   if (!pollDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll Not found');
 
   return pollDoc.owner.toString() === req.user._id.toString();
+};
+
+/** Check for empty category fields and retry category detection for those fields */
+export const fillEmptyCategoryFields = async () => {
+  const polls = await QMS.find({ category: '' });
+  logger.info(`${polls.length} have been filled`);
+
+  if (polls.length) {
+    polls.map(async (poll) => {
+      const result = await checkForCategoryAndLanguageOpenAI(poll);
+      Object.assign(poll, result);
+      await poll.save();
+    });
+  }
 };
 
 /**
