@@ -11,9 +11,10 @@ import OpenAI from 'openai';
 import { zodFunction } from 'openai/helpers/zod';
 import { config, logger } from '../config';
 import { getAllCategories } from './category.service';
-import { jsonToObject, stringToObject } from '../utils/stringToObject';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
+import { IUserSchema } from '../mongodb/models/user';
+import { jsonToObject } from '../utils/jsonToObject';
 
 /**
  * Create a poll
@@ -188,7 +189,7 @@ export const checkForCategoryAndLanguageOpenAI = async (
     (category) => category.name
   )}. Based on the categories provided, what category does the following text belong to(only return the categories provided, if there's no match return the closest matching category), and what language is it written in: ${
     parsedPoll.question
-  }. Structure the response as follows: {category: category_name, language: language_name}`;
+  }.`;
 
   try {
     const languageAndCategory = await openai.beta.chat.completions.parse({

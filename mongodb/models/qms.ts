@@ -63,6 +63,11 @@ export const openAIResponseObject = z.object({
   language: z.string(),
 });
 
+export const openAITranslationResponseObject = z.object({
+  question: z.string(),
+  answers: z.array(z.string()),
+});
+
 export const QMSObject = z.object({
   question: z.string(),
   answers: z.array(z.string()),
