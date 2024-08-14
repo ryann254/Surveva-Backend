@@ -19,10 +19,7 @@ export const translatePollOpenAi = async (
   poll: IQMSDoc
 ): Promise<IQMSDoc> => {
   const openai = new OpenAI({ apiKey: config.openAiApiSecretKey });
-  const prompt = `Translate the following question: ${
-    poll.question
-  } and answers: ${poll.answers.map((answer) => answer)} to ${userLanguage}`;
-
+  const prompt = `Translate the following question: ${poll.question} and answers: ${poll.answers} to ${userLanguage}`;
   try {
     const translatedPoll = await openai.beta.chat.completions.parse({
       model: 'gpt-3.5-turbo',
@@ -44,8 +41,8 @@ export const translatePollOpenAi = async (
     logger.info(`Open Ai Translation response: ${JSON.stringify(response)}`);
     const parsedResult = openAITranslationResponseObject.parse(response);
 
-    poll.question = parsedResult.question;
-    poll.answers = parsedResult.answers;
+    poll.question = parsedResult.translatedQuestion;
+    poll.answers = parsedResult.translatedAnswers;
     return poll;
   } catch (error) {
     logger.error('Failed to translate poll from open ai', error);
