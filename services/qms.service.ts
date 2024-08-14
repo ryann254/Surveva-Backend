@@ -65,8 +65,11 @@ export const queueMangagementSystem = async (
   // First, fetch polls with the same category and language as the poll posted by the user.
   if (parsedPoll.category !== '') {
     const sameCategoryAndLanguagePolls = await QMS.find({
-      category: parsedPoll.category,
-      language: parsedPoll.language,
+      $and: [
+        { category: parsedPoll.category },
+        { language: parsedPoll.language },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     }).limit(10);
     qmsPolls = qmsPolls.concat(sameCategoryAndLanguagePolls);
     logger.info(`Reached LAYER 1 ${qmsPolls}`);
@@ -83,9 +86,12 @@ export const queueMangagementSystem = async (
       categories.map(async (category) => {
         if (qmsPolls.length < 10) {
           const userPreferredCategoriesAndLanguagePolls = await QMS.find({
-            category,
-            language: user.language,
-            _id: { $nin: qmsPollIds },
+            $and: [
+              { category },
+              { language: user.language },
+              { _id: { $nin: qmsPollIds } },
+              { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+            ],
           }).limit(10);
 
           // Splice the `userPreferredCategoriesAndLanguagePolls` array to ensure that it only adds the required number of polls to fill the `qmsPolls` array.
@@ -112,8 +118,11 @@ export const queueMangagementSystem = async (
   if (qmsPolls.length < 10) {
     const qmsPollIds = qmsPolls.map((poll) => poll._id);
     const sameLanguagePolls = await QMS.find({
-      language: parsedPoll.language,
-      _id: { $nin: qmsPollIds },
+      $and: [
+        { language: parsedPoll.language },
+        { _id: { $nin: qmsPollIds } },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     }).limit(10);
 
     // Do the same as the above LAYER 2 step
@@ -132,9 +141,12 @@ export const queueMangagementSystem = async (
   if (qmsPolls.length < 10 && parsedPoll.category !== '') {
     const qmsPollIds = qmsPolls.map((poll) => poll._id);
     const sameCategoryDifferentLanguagePolls = await QMS.find({
-      category: parsedPoll.category,
-      $or: [{ language: { $ne: parsedPoll.language } }],
-      _id: { $nin: qmsPollIds },
+      $and: [
+        { category: parsedPoll.category },
+        { $or: [{ language: { $ne: parsedPoll.language } }] },
+        { _id: { $nin: qmsPollIds } },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     }).limit(10);
 
     // Translate all the `sameCategoryDifferentLanguagePolls`
@@ -165,7 +177,10 @@ export const queueMangagementSystem = async (
   if (qmsPolls.length < 10 && parsedPoll.category !== '') {
     const qmsPollIds = qmsPolls.map((poll) => poll._id);
     const randomPolls = await QMS.find({
-      _id: { $nin: qmsPollIds },
+      $and: [
+        { _id: { $nin: qmsPollIds } },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     }).limit(10);
 
     const translatedPolls = await Promise.all(
