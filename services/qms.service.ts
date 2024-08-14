@@ -3,7 +3,7 @@ import QMS, {
   IQMSDoc,
   openAITranslationResponseObject,
 } from '../mongodb/models/qms';
-import { IUserSchema } from '../mongodb/models/user';
+import { IUserDoc, IUserSchema } from '../mongodb/models/user';
 import OpenAI from 'openai';
 import { config, logger } from '../config';
 import { zodFunction } from 'openai/helpers/zod';
@@ -29,11 +29,6 @@ export const translatePollOpenAi = async (
       messages: [
         {
           role: 'system',
-          content:
-            'You are a helpful assistant. You help users query for the data they are looking for by calling the query function.',
-        },
-        {
-          role: 'user',
           content: prompt,
         },
       ],
@@ -66,7 +61,7 @@ export const translatePollOpenAi = async (
  */
 export const queueMangagementSystem = async (
   parsedPoll: IQMSSchema,
-  user: IUserSchema
+  user: IUserDoc
 ): Promise<IQMSDoc[]> => {
   let qmsPolls: IQMSDoc[] = [];
   // LAYER 1:
@@ -77,6 +72,7 @@ export const queueMangagementSystem = async (
       language: parsedPoll.language,
     }).limit(10);
     qmsPolls = qmsPolls.concat(sameCategoryAndLanguagePolls);
+    logger.info(`Reached LAYER 1 ${qmsPolls}`);
   }
 
   // LAYER 2:
@@ -86,29 +82,32 @@ export const queueMangagementSystem = async (
     const categories = user.categories;
     // Exempt the following ids from `qmsPolls` to avoid duplicates.
     const qmsPollIds = qmsPolls.map((poll) => poll._id);
-    categories.map(async (category) => {
-      if (qmsPolls.length < 10) {
-        const userPreferredCategoriesAndLanguagePolls = await QMS.find({
-          category,
-          language: user.language,
-          _id: { $nin: qmsPollIds },
-        }).limit(10);
+    await Promise.all(
+      categories.map(async (category) => {
+        if (qmsPolls.length < 10) {
+          const userPreferredCategoriesAndLanguagePolls = await QMS.find({
+            category,
+            language: user.language,
+            _id: { $nin: qmsPollIds },
+          }).limit(10);
 
-        // Splice the `userPreferredCategoriesAndLanguagePolls` array to ensure that it only adds the required number of polls to fill the `qmsPolls` array.
-        const numPollsToAdd = 10 - qmsPolls.length;
+          // Splice the `userPreferredCategoriesAndLanguagePolls` array to ensure that it only adds the required number of polls to fill the `qmsPolls` array.
+          const numPollsToAdd = 10 - qmsPolls.length;
 
-        // Ensure the `userPreferredCategoriesAndLanguagePolls` has enough polls to fill the qmsPolls
-        if (userPreferredCategoriesAndLanguagePolls.length >= numPollsToAdd) {
-          const removedPolls = userPreferredCategoriesAndLanguagePolls.splice(
-            0,
-            numPollsToAdd
-          );
-          qmsPolls = qmsPolls.concat(removedPolls);
-        } else {
-          qmsPolls = qmsPolls.concat(userPreferredCategoriesAndLanguagePolls);
+          // Ensure the `userPreferredCategoriesAndLanguagePolls` has enough polls to fill the qmsPolls
+          if (userPreferredCategoriesAndLanguagePolls.length >= numPollsToAdd) {
+            const removedPolls = userPreferredCategoriesAndLanguagePolls.splice(
+              0,
+              numPollsToAdd
+            );
+            qmsPolls = qmsPolls.concat(removedPolls);
+          } else {
+            qmsPolls = qmsPolls.concat(userPreferredCategoriesAndLanguagePolls);
+          }
         }
-      }
-    });
+      })
+    );
+    logger.info(`Reached LAYER 2 ${qmsPolls}`);
   }
 
   // LAYER 3:
@@ -128,6 +127,7 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(sameLanguagePolls);
     }
+    logger.info(`Reached LAYER 3 ${qmsPolls}`);
   }
 
   // LAYER 4a:
@@ -160,6 +160,7 @@ export const queueMangagementSystem = async (
         }
       }
     }
+    logger.info(`Reached LAYER 4a ${qmsPolls}`);
   }
 
   // LAYER 4b:
@@ -188,6 +189,7 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(translatedPolls);
     }
+    logger.info(`Reached LAYER 4b ${qmsPolls}`);
   }
 
   return qmsPolls;

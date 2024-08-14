@@ -197,11 +197,6 @@ export const checkForCategoryAndLanguageOpenAI = async (
       messages: [
         {
           role: 'system',
-          content:
-            'You are a helpful assistant. You help users query for the data they are looking for by calling the query function.',
-        },
-        {
-          role: 'user',
           content: prompt,
         },
       ],
@@ -226,7 +221,7 @@ export const checkForCategoryAndLanguageOpenAI = async (
     }
 
     parsedPoll.category = categoryId || '';
-    parsedPoll.language = parsedResult.language;
+    parsedPoll.language = parsedResult.language.toLowerCase();
     return parsedPoll;
   } catch (error) {
     logger.error('Failed to get category and language from open ai', error);

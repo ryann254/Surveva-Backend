@@ -22,6 +22,8 @@ import { config, logger, TokenTypes } from '../config';
 import { verifyToken } from '../services/token.service';
 import mongoose from 'mongoose';
 import { queueMangagementSystem } from '../services/qms.service';
+import { getUserById } from '../services/user.service';
+import { IUserDoc } from '../mongodb/models/user';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
@@ -39,7 +41,12 @@ export const createPollController = catchAsync(
           ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
           : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
       // Activate the QMS to fetch 10 polls.
-      const qmsPolls = await queueMangagementSystem(parsedPoll, req.user);
+      const user = await getUserById(req.user._id);
+      const qmsPolls = await queueMangagementSystem(
+        parsedPoll,
+        user as IUserDoc
+      );
+      logger.info(`${qmsPolls.length} qmsPolls were retrieved`);
       const poll = await createPoll(updatedPoll);
       // Send `poll_created` analytic to Amplitude
       if (poll) {
