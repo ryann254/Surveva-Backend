@@ -9,6 +9,8 @@ import {
   origin,
   tokenTypes,
   TokenTypes,
+  dsaLayers,
+  DSALayers,
 } from './enums';
 import config from './config';
 import logger from './logger';
@@ -31,4 +33,6 @@ export {
   tokenTypes,
   TokenTypes,
   jwtStrategy,
+  dsaLayers,
+  DSALayers,
 };

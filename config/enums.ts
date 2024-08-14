@@ -27,6 +27,11 @@ export enum TokenTypes {
   VERIFY_EMAIL = 'verifyEmail',
 }
 
+export enum DSALayers {
+  LAYER_1 = 'layer 1',
+  LAYER_2 = 'layer 2',
+}
+
 export type RolesMap = {
   [key in Roles]: string[];
 };
@@ -41,4 +46,5 @@ export const gender = Object.values(Gender);
 export const platform = Object.values(Platform);
 export const origin = Object.values(Origin);
 export const tokenTypes = Object.values(TokenTypes);
+export const dsaLayers = Object.values(DSALayers);
 export const roleRights = new Map(Object.entries(allRoles));

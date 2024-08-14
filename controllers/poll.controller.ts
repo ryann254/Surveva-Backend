@@ -18,12 +18,11 @@ import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
-import { config, logger, TokenTypes } from '../config';
-import { verifyToken } from '../services/token.service';
-import mongoose from 'mongoose';
+import { config, logger, DSALayers } from '../config';
 import { queueMangagementSystem } from '../services/qms.service';
 import { getUserById } from '../services/user.service';
 import { IUserDoc } from '../mongodb/models/user';
+import { discoverySectionAlgorithm } from '../services/dsa.service';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
@@ -48,6 +47,7 @@ export const createPollController = catchAsync(
       );
       logger.info(`${qmsPolls.length} qmsPolls were retrieved`);
       const poll = await createPoll(updatedPoll);
+      console.log(poll._id);
       // Send `poll_created` analytic to Amplitude
       if (poll) {
         sendAmplitudeAnalytics('poll_created');
@@ -115,8 +115,23 @@ export const updatePollController = catchAsync(
 
 export const getAllPollsController = catchAsync(
   async (req: Request, res: Response) => {
-    const polls = await getAllPolls();
-    return res.status(httpStatus.OK).json(polls);
+    if (!req.query.page || !req.query.categoryIndex || !req.query.dsaLayer)
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Page, Category Index and dsaLayer query parameters missing'
+      );
+
+    const user = await getUserById(req.user._id);
+    const { page, categoryIndex, dsaLayer } = req.query;
+    // Polls that have been sorted by the DSA(Discovery Section Algorithm).
+    const dsaSortedPollsAndIndex = await discoverySectionAlgorithm(
+      dsaLayer,
+      parseInt(categoryIndex),
+      parseInt(page),
+      user as IUserDoc
+    );
+    logger.info(`${dsaSortedPollsAndIndex.docs.length} polls were retrieved`);
+    return res.status(httpStatus.OK).json(dsaSortedPollsAndIndex);
   }
 );
 
