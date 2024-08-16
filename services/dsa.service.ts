@@ -12,20 +12,24 @@ import { IUserDoc } from '../mongodb/models/user';
  * @returns {Promise<IQMSDoc[]>}
  */
 export const discoverySectionAlgorithm = async (
-  layer: string,
-  categoryIndex: number,
-  page: number,
+  options: Record<string, any>,
   user: IUserDoc
-): Promise<{ docs: IQMSDoc[] | IServedPollDoc[]; categoryIndex: number }> => {
+): Promise<{
+  docs: IQMSDoc[] | IServedPollDoc[];
+  categoryIndexInt: number;
+}> => {
+  const { layer, page, categoryIndex } = options;
+  let categoryIndexInt = parseInt(categoryIndex);
+  const pageInt = parseInt(page);
   let dsaPolls: IQMSDoc[] | IServedPollDoc[] = [];
-  let _start = (page - 1) * 10;
+  let _start = (pageInt - 1) * 10;
   // LAYER 1:
   // Fetch polls that match the user's preferred categories and language.
   // Fetch polls from both the QMS collection and Served Polls collection in the ratio of 6:4
   if (layer === DSALayers.LAYER_1) {
     // Remove categories that have already been viewed.
     let categories = user.categories.splice(
-      categoryIndex,
+      categoryIndexInt,
       user.categories.length
     );
     await Promise.all(
@@ -84,7 +88,7 @@ export const discoverySectionAlgorithm = async (
           }
         }
         // Keep track of whether the algorithm will fetch polls from a different category.
-        categoryIndex = index;
+        categoryIndexInt = index;
       })
     );
     logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
@@ -92,7 +96,9 @@ export const discoverySectionAlgorithm = async (
 
   // LAYER 2:
   // If users don’t interact with polls from their preferred categories fetch trending polls in their geographical region.
-  // Also if the above polls
+  // Also if the above polls are less than 10, fetch the remaining polls from this layer
+  if (layer === DSALayers.LAYER_2) {
+  }
 
-  return { docs: dsaPolls, categoryIndex };
+  return { docs: dsaPolls, categoryIndexInt };
 };

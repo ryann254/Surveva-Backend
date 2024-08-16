@@ -23,6 +23,7 @@ import { queueMangagementSystem } from '../services/qms.service';
 import { getUserById } from '../services/user.service';
 import { IUserDoc } from '../mongodb/models/user';
 import { discoverySectionAlgorithm } from '../services/dsa.service';
+import pick from '../utils/pick';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
@@ -122,7 +123,7 @@ export const getAllPollsController = catchAsync(
       );
 
     const user = await getUserById(req.user._id);
-    const { page, categoryIndex, dsaLayer } = req.query;
+    const options = pick(req.query, ['page', 'categoryIndex', 'dsaLayer']);
     // Polls that have been sorted by the DSA(Discovery Section Algorithm).
     const dsaSortedPollsAndIndex = await discoverySectionAlgorithm(
       dsaLayer,

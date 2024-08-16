@@ -92,6 +92,11 @@ export const QMSObject = z.object({
       })
     )
     .optional(),
+  likes: z.number().optional(),
+  comments: z
+    .union([z.instanceof(mongoose.Types.ObjectId), z.string()])
+    .optional(),
+  popularityCount: z.number().optional(),
 });
 
 export type IQMSSchema = z.infer<typeof QMSObject>;
