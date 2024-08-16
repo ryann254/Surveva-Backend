@@ -9,7 +9,7 @@ import httpStatus from 'http-status';
 import { ApiError } from '../errors';
 import OpenAI from 'openai';
 import { zodFunction } from 'openai/helpers/zod';
-import { config, logger } from '../config';
+import { ActionTypes, config, logger } from '../config';
 import { getAllCategories } from './category.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
@@ -56,6 +56,46 @@ export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
     { $limit: 10 },
   ]).exec();
   return results;
+};
+
+/** Update a poll's popularityCount
+ * @param {mongoose.Types.ObjectId} pollId
+ * @param {string} actionType
+ * @return {Promise<IQMSDoc>}
+ */
+export const updatePopularityCount = async (
+  pollId: mongoose.Types.ObjectId,
+  actionType: string
+): Promise<IQMSDoc> => {
+  const poll = await getPollById(pollId);
+
+  if (!poll)
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Poll with id: ${pollId} does not exist`
+    );
+
+  if (poll.popularityCount) {
+    switch (actionType) {
+      case ActionTypes.CLICKED:
+        poll.popularityCount += 8;
+        break;
+      case ActionTypes.VOTED:
+        poll.popularityCount += 2;
+        break;
+      case ActionTypes.COMMENTED:
+        poll.popularityCount += 6;
+        break;
+      case ActionTypes.LIKED:
+        poll.popularityCount += 4;
+        break;
+      default:
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid action type');
+    }
+  }
+  await poll.save();
+
+  return poll;
 };
 
 /**

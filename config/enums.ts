@@ -32,6 +32,13 @@ export enum DSALayers {
   LAYER_2 = 'layer 2',
 }
 
+export enum ActionTypes {
+  CLICKED = 'clicked',
+  VOTED = 'voted',
+  LIKED = 'liked',
+  COMMENTED = 'commented',
+}
+
 export type RolesMap = {
   [key in Roles]: string[];
 };
@@ -47,4 +54,5 @@ export const platform = Object.values(Platform);
 export const origin = Object.values(Origin);
 export const tokenTypes = Object.values(TokenTypes);
 export const dsaLayers = Object.values(DSALayers);
+export const actionTypes = Object.values(ActionTypes);
 export const roleRights = new Map(Object.entries(allRoles));

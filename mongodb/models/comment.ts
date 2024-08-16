@@ -20,3 +20,7 @@ export const CommentObject = z.object({
 export type ICommentSchema = z.infer<typeof CommentObject>;
 
 export interface ICommentDoc extends ICommentSchema, Document {}
+
+const Comment = mongoose.model<ICommentDoc>('Comment', CommentSchema);
+
+export default Comment;

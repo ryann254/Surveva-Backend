@@ -12,6 +12,7 @@ import {
   searchPolls,
   servePoll,
   updatePoll,
+  updatePopularityCount,
   verifyPollOwnership,
 } from '../services/poll.service';
 import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
@@ -80,12 +81,22 @@ export const updatePollController = catchAsync(
     if (!req.params.pollId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
-    // Use the user's id to make sure the poll belongs to the user.
-    const pollBelongsToUser = await verifyPollOwnership(req);
+    const parsedPoll = QMSObject.parse(req.body);
 
-    if (pollBelongsToUser && req.body.question) {
-      const parsedPoll = QMSObject.parse(req.body);
+    // Update a poll's `popularityCount` when a user clicks, votes, likes or comments on it.
+    if (req.query.actionType) {
+      await updatePopularityCount(req.params.pollId, req.query.actionType);
+      const poll = await updatePoll(req.params.pollId, parsedPoll);
 
+      // Check if poll has reached the required number of responses.
+      // If yes, then move the poll to the Served Poll collection
+      await checkForNumberOfResponses(poll, req.params.pollId);
+
+      return res.status(httpStatus.OK).json(poll);
+    }
+
+    // Skip the AI calls if a user is clicking, voting, liking or commenting on a poll.
+    if (!req.query.actionType) {
       // Check for moderation using the open ai api
       const contentIsHarmful = await checkForModeration(parsedPoll.question);
 
@@ -95,11 +106,12 @@ export const updatePollController = catchAsync(
           config.useOpenAi === 'true'
             ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
             : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
+
         const poll = await updatePoll(req.params.pollId, updatedPoll);
 
         // Check if poll has reached the required number of responses.
         // If yes, then move the poll to the Served Poll collection
-        await checkForNumberOfResponses(updatedPoll, req.params.pollId);
+        await checkForNumberOfResponses(poll, req.params.pollId);
 
         return res.status(httpStatus.OK).json(poll);
       }
@@ -108,9 +120,6 @@ export const updatePollController = catchAsync(
           'The content you have posted is potentially harmful. Edit it and try again',
       });
     }
-    return res
-      .status(httpStatus.FORBIDDEN)
-      .json({ message: "You're Not allowed to perform this action" });
   }
 );
 
@@ -126,9 +135,7 @@ export const getAllPollsController = catchAsync(
     const options = pick(req.query, ['page', 'categoryIndex', 'dsaLayer']);
     // Polls that have been sorted by the DSA(Discovery Section Algorithm).
     const dsaSortedPollsAndIndex = await discoverySectionAlgorithm(
-      dsaLayer,
-      parseInt(categoryIndex),
-      parseInt(page),
+      options,
       user as IUserDoc
     );
     logger.info(`${dsaSortedPollsAndIndex.docs.length} polls were retrieved`);

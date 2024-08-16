@@ -11,6 +11,8 @@ import {
   TokenTypes,
   dsaLayers,
   DSALayers,
+  ActionTypes,
+  actionTypes,
 } from './enums';
 import config from './config';
 import logger from './logger';
@@ -35,4 +37,6 @@ export {
   jwtStrategy,
   dsaLayers,
   DSALayers,
+  ActionTypes,
+  actionTypes,
 };
