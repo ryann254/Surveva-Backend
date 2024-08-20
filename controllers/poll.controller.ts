@@ -19,7 +19,7 @@ import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
 import { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
-import { config, logger, DSALayers } from '../config';
+import { config, logger } from '../config';
 import { queueMangagementSystem } from '../services/qms.service';
 import { getUserById } from '../services/user.service';
 import { IUserDoc } from '../mongodb/models/user';
@@ -49,7 +49,6 @@ export const createPollController = catchAsync(
       );
       logger.info(`${qmsPolls.length} qmsPolls were retrieved`);
       const poll = await createPoll(updatedPoll);
-      console.log(poll._id);
       // Send `poll_created` analytic to Amplitude
       if (poll) {
         sendAmplitudeAnalytics('poll_created');
