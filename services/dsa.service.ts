@@ -66,7 +66,7 @@ export const discoverySectionAlgorithm = async (
   docs: IQMSDoc[] | IServedPollDoc[];
   categoryIndexInt: number;
 }> => {
-  const { layer, page, categoryIndex } = options;
+  const { dsaLayer, page, categoryIndex } = options;
   let categoryIndexInt = parseInt(categoryIndex);
   const pageInt = parseInt(page);
   let dsaPolls: IQMSDoc[] | IServedPollDoc[] = [];
@@ -74,7 +74,7 @@ export const discoverySectionAlgorithm = async (
   // LAYER 1:
   // Fetch polls that match the user's preferred categories and language.
   // Fetch polls from both the QMS collection and Served Polls collection in the ratio of 6:4
-  if (layer === DSALayers.LAYER_1) {
+  if (dsaLayer === DSALayers.LAYER_1) {
     // Remove categories that have already been viewed.
     let categories = user.categories.splice(
       categoryIndexInt,
@@ -150,15 +150,22 @@ export const discoverySectionAlgorithm = async (
   // If users don’t interact with polls from their preferred categories fetch trending polls in their geographical region.
   // Also if the above polls are less than 10, fetch the remaining polls from this layer
   if (dsaPolls.length < 10) {
+    const dsaPollIds = dsaPolls.map((poll) => poll._id);
     const qmsTrendingPolls = await QMS.find({
-      isCreatedByAdmin: { $ne: true }, // Prioritize documents where isCreatedByAdmin is false
+      $and: [
+        { _id: { $nin: dsaPollIds } },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     })
       .populate('owner')
       .skip(_start)
       .sort({ popularityCount: -1 })
       .limit(6);
     const servedTrendingPolls = await ServedPoll.find({
-      isCreatedByAdmin: { $ne: true }, // Prioritize documents where isCreatedByAdmin is false
+      $and: [
+        { _id: { $nin: dsaPollIds } },
+        { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      ],
     })
       .populate('owner')
       .skip(_start)

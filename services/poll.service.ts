@@ -299,11 +299,11 @@ export const checkForNumberOfResponses = async (
 ) => {
   // TODO: Add a service to verify the transaction Id from Google/Apple payments to know how much a user paid and hence how many responses their poll should get.
   if (parsedPoll.paid?.length) {
-    if (parsedPoll.responses && parsedPoll?.responses?.length === 40) {
+    if (parsedPoll.responses && parsedPoll?.responses?.length >= 40) {
       await servePoll(pollId);
     }
   } else {
-    if (parsedPoll.responses && parsedPoll?.responses?.length === 10) {
+    if (parsedPoll.responses && parsedPoll?.responses?.length >= 10) {
       await servePoll(pollId);
     }
   }
