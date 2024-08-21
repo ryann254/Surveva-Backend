@@ -5,6 +5,48 @@ import ServedPoll, { IServedPollDoc } from '../mongodb/models/served_poll';
 import { IUserDoc } from '../mongodb/models/user';
 
 /**
+ * Fetch Admin polls from the QMS Collection
+ * @param {string | Types.ObjectId} category
+ * @param {string} language
+ * @param {number} _start
+ * @param {number} limit
+ * @returns {IQMSDoc}
+ */
+const fetchQMSAdminPolls = async (
+  dsaPollIds: string[],
+  _start: number,
+  limit: number
+) =>
+  QMS.find({
+    $and: [{ _id: { $nin: dsaPollIds } }, { isCreatedByAdmin: true }],
+  })
+    .populate('owner')
+    .skip(_start)
+    .sort({ popularityCount: -1 })
+    .limit(limit);
+
+/**
+ * Fetch Admin polls from the Served Poll Collection
+ * @param {string | Types.ObjectId} category
+ * @param {string} language
+ * @param {number} _start
+ * @param {number} limit
+ * @returns {IQMSDoc}
+ */
+const fetchServedAdminPolls = async (
+  dsaPollIds: string[],
+  _start: number,
+  limit: number
+) =>
+  ServedPoll.find({
+    $and: [{ _id: { $nin: dsaPollIds } }, { isCreatedByAdmin: true }],
+  })
+    .populate('owner')
+    .skip(_start)
+    .sort({ popularityCount: -1 })
+    .limit(limit);
+
+/**
  * Fetch polls from a user's preferred categories and language.
  * @param {string | Types.ObjectId} category
  * @param {string} language
@@ -151,7 +193,7 @@ export const discoverySectionAlgorithm = async (
   // Also if the above polls are less than 10, fetch the remaining polls from this layer
   if (dsaPolls.length < 10) {
     const dsaPollIds = dsaPolls.map((poll) => poll._id);
-    const qmsTrendingPolls = await QMS.find({
+    let qmsTrendingPolls = await QMS.find({
       $and: [
         { _id: { $nin: dsaPollIds } },
         { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
@@ -161,7 +203,7 @@ export const discoverySectionAlgorithm = async (
       .skip(_start)
       .sort({ popularityCount: -1 })
       .limit(6);
-    const servedTrendingPolls = await ServedPoll.find({
+    let servedTrendingPolls = await ServedPoll.find({
       $and: [
         { _id: { $nin: dsaPollIds } },
         { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
@@ -171,6 +213,31 @@ export const discoverySectionAlgorithm = async (
       .skip(_start)
       .sort({ popularityCount: -1 })
       .limit(4);
+
+    // There some instances esp when the app is new where there will be more admin polls than user generated polls.
+    // In such scenarios, if the user generated polls in the QMS don't add up to 6, fill up the remaining slots with admin polls.
+    if (qmsTrendingPolls.length < 6) {
+      const numPollsToAdd = 6 - qmsTrendingPolls.length;
+      const adminPolls = await fetchQMSAdminPolls(
+        dsaPollIds as string[],
+        _start,
+        numPollsToAdd
+      );
+
+      qmsTrendingPolls.concat(adminPolls);
+    }
+
+    // Do the same for the Served Poll Collection
+    if (servedTrendingPolls.length < 4) {
+      const numPollsToAdd = 4 - servedTrendingPolls.length;
+      const adminPolls = await fetchQMSAdminPolls(
+        dsaPollIds as string[],
+        _start,
+        numPollsToAdd
+      );
+
+      servedTrendingPolls.concat(adminPolls);
+    }
 
     const filteredQMSTrendingPolls = qmsTrendingPolls.filter(
       // @ts-expect-error Property location exists on poll.owner since we have populated the owner field.
