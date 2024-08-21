@@ -84,14 +84,21 @@ export const updatePollController = catchAsync(
 
     // Update a poll's `popularityCount` when a user clicks, votes, likes or comments on it.
     if (req.query.actionType) {
-      await updatePopularityCount(req.params.pollId, req.query.actionType);
+      const user = await getUserById(req.user._id);
+      const result = await updatePopularityCount(
+        req.params.pollId,
+        req.query.actionType,
+        user
+      );
       const poll = await updatePoll(req.params.pollId, parsedPoll);
 
       // Check if poll has reached the required number of responses.
       // If yes, then move the poll to the Served Poll collection
       await checkForNumberOfResponses(poll, req.params.pollId);
 
-      return res.status(httpStatus.OK).json(poll);
+      return res
+        .status(httpStatus.OK)
+        .json({ poll, resetCategoryIndex: result });
     }
 
     // Skip the AI calls if a user is clicking, voting, liking or commenting on a poll.

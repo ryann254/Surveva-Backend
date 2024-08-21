@@ -13,7 +13,7 @@ import { ActionTypes, config, logger } from '../config';
 import { getAllCategories } from './category.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
-import { IUserSchema } from '../mongodb/models/user';
+import { IUserDoc, IUserSchema } from '../mongodb/models/user';
 import { jsonToObject } from '../utils/jsonToObject';
 
 /**
@@ -61,12 +61,13 @@ export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
 /** Update a poll's popularityCount
  * @param {mongoose.Types.ObjectId} pollId
  * @param {string} actionType
- * @return {Promise<IQMSDoc>}
+ * @return {boolean}
  */
 export const updatePopularityCount = async (
   pollId: mongoose.Types.ObjectId,
-  actionType: string
-): Promise<IQMSDoc> => {
+  actionType: string,
+  user: IUserDoc | null
+): Promise<boolean> => {
   const poll = await getPollById(pollId);
 
   if (!poll)
@@ -95,7 +96,18 @@ export const updatePopularityCount = async (
   }
   await poll.save();
 
-  return poll;
+  // Check if the poll the user interacted with is in their list of categories
+  // If not, add it and reset the categoryIndex and dsaLayer
+  if (poll.category && user?.categories.length) {
+    if (!user.categories.includes(poll.category)) {
+      user?.categories.push(poll.category);
+      user.save();
+
+      return true;
+    }
+  }
+
+  return false;
 };
 
 /**
