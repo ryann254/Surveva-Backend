@@ -12,17 +12,19 @@ import {
   deleteAmplitudeAnalytics,
   sendAmplitudeAnalytics,
 } from '../utils/handleAmplitudeAnalytics';
-import { UserObject } from '../mongodb/models/user';
+import User, { UserObject } from '../mongodb/models/user';
 import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
+    console.log('here');
     if (!req.body)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const parsedUser = UserObject.parse(req.body);
-    const user = await createUser(parsedUser);
+    // const user = await createUser(parsedUser);
+    const user = await User.create(parsedUser);
     // Send `user_created` analytic to Amplitude
     if (user) {
       sendAmplitudeAnalytics('user_created');
