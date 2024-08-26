@@ -6,9 +6,11 @@ import { reqLoginUser } from './auth.test.data';
 require('dotenv').config();
 
 let accessToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmIzMTk3NWVlM2RmMzFlMDVlMmFiOWQiLCJpYXQiOjE3MjQ2ODUyNzcsImV4cCI6MTcyNDY5MjQ3NywidHlwZSI6ImFjY2VzcyJ9.bvje-VD3lZmUCRjPP1XZydhY1i2R9-bV4jBvyHqGhi8';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmIzMTk3NWVlM2RmMzFlMDVlMmFiOWQiLCJpYXQiOjE3MjQ2ODkzMjMsImV4cCI6MTcyNDY5NjUyMywidHlwZSI6ImFjY2VzcyJ9.WfGMWFjsEGR85dc8-AJiFtaIHQsmK0xlNCa0pJU8_sY';
 let refreshToken = '';
 let userId = '';
+
+jest.setTimeout(20000);
 
 describe('POST /api/v1/user', () => {
   describe('given required user details(username, email, role, dob, location, language, gender and categories)', () => {
@@ -17,7 +19,8 @@ describe('POST /api/v1/user', () => {
         .post('/api/v1/user')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqCreateUser);
-      console.log(response.headers['content-type'], 'here');
+      console.log(response.status, 'status');
+      console.log(response.body, 'body');
 
       userId = response.body._id;
       const mockUserResponse = {

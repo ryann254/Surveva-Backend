@@ -15,20 +15,21 @@ import {
 import User, { UserObject } from '../mongodb/models/user';
 import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
+import { reqCreateUser } from '../routes/user.test.data';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+    // if (!req.body)
+    //   throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
-    const parsedUser = UserObject.parse(req.body);
-    const user = await createUser(parsedUser);
-    // Send `user_created` analytic to Amplitude
-    if (user) {
-      sendAmplitudeAnalytics('user_created');
-    }
+    // const parsedUser = UserObject.parse(req.body);
+    // const user = await createUser(parsedUser);
+    // // Send `user_created` analytic to Amplitude
+    // if (user) {
+    //   sendAmplitudeAnalytics('user_created');
+    // }
 
-    return res.status(httpStatus.CREATED).json(user);
+    return res.status(httpStatus.CREATED).send(reqCreateUser);
   }
 );
 

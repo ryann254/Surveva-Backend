@@ -14,6 +14,8 @@ interface IRoute {
 
 const router = Router();
 
+router.use('/user', UserRoute);
+
 const defaultIRoute: IRoute[] = [
   {
     path: '/auth',
@@ -23,10 +25,10 @@ const defaultIRoute: IRoute[] = [
     path: '/poll',
     route: PollRoute,
   },
-  {
-    path: '/user',
-    route: UserRoute,
-  },
+  // {
+  //   path: '/user',
+  //   route: UserRoute,
+  // },
   {
     path: '/category',
     route: CategoryRoute,
