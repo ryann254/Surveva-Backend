@@ -52,7 +52,6 @@ const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
     },
     profilePic: {
       type: String,
-      required: true,
       trim: true,
     },
     dob: {

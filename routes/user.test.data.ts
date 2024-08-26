@@ -9,7 +9,7 @@ const reqCreateUser = {
   },
   language: 'Japanese',
   gender: 'male',
-  categories: ['666161869d833b40c6a14051', '668cdfd8f33970c10a6b344e'],
+  categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
 };
 
 const reqUpdateUser = {

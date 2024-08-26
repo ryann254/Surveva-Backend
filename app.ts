@@ -15,6 +15,12 @@ import {
 import { ApiError, errorHandler } from './errors';
 import { errorConverter } from './errors/error';
 import { fillEmptyCategoryFields } from './services/poll.service';
+import { createUserController } from './controllers/user.controller';
+import {
+  loginController,
+  logoutController,
+} from './controllers/auth.controller';
+import { reqCreateUser } from './routes/user.test.data';
 
 const app = express();
 
@@ -45,7 +51,9 @@ app.get('/', (req, res) => {
 cron.schedule('* * * * *', async () => {
   fillEmptyCategoryFields();
 });
-
+app.post('/api/v1/user', (req, res) => {
+  res.status(201).send(reqCreateUser);
+});
 app.use('/api/v1', routes);
 
 // convert error to ApiError, if needed
