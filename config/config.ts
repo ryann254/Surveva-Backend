@@ -6,6 +6,7 @@ dotenv.config();
 const envSchema = z.object({
   nodeEnv: z.enum(['development', 'production', 'test']),
   mongoDBUri: z.string(),
+  mongoDBUriTestDB: z.string(),
   openAiApiSecretKey: z.string(),
   geminiAiApiSecretKey: z.string(),
   useOpenAi: z.string(),
@@ -28,6 +29,7 @@ const envSchema = z.object({
 const config = envSchema.parse({
   nodeEnv: process.env.NODE_ENV,
   mongoDBUri: process.env.MONGODB_URI,
+  mongoDBUriTestDB: process.env.MONGODB_URI_TEST_DB,
   openAiApiSecretKey: process.env.OPEN_AI_API_SECRET_KEY,
   geminiAiApiSecretKey: process.env.GEMINI_AI_API_SECRET_KEY,
   useOpenAi: process.env.USE_OPEN_AI,

@@ -1,26 +1,55 @@
 import request from 'supertest';
 import app from '../app';
 import { reqCreateUser, reqUpdateUser } from './user.test.data';
-import { reqLoginUser } from './auth.test.data';
+import { reqLoginUser, reqNewUser } from './auth.test.data';
+import mongoose from 'mongoose';
+import { config } from '../config';
+import User from '../mongodb/models/user';
 
 require('dotenv').config();
 
-let accessToken =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmIzMTk3NWVlM2RmMzFlMDVlMmFiOWQiLCJpYXQiOjE3MjQ2ODkzMjMsImV4cCI6MTcyNDY5NjUyMywidHlwZSI6ImFjY2VzcyJ9.WfGMWFjsEGR85dc8-AJiFtaIHQsmK0xlNCa0pJU8_sY';
+let accessToken = '';
 let refreshToken = '';
 let userId = '';
 
-jest.setTimeout(20000);
+jest.setTimeout(100000);
 
 describe('POST /api/v1/user', () => {
+  beforeAll(async () => {
+    await mongoose.connect(config.mongoDBUriTestDB);
+
+    // Create a new user then login using their credentials.
+    await User.create(reqNewUser);
+    const loginResponse = await request(app)
+      .post('/api/v1/auth/login')
+      .send(reqLoginUser);
+    accessToken = loginResponse.body.tokens.access.token;
+    refreshToken = loginResponse.body.tokens.refresh.token;
+  });
+
+  beforeEach(async () => {
+    await Promise.all(
+      Object.values(mongoose.connection.collections).map(async (collection) =>
+        collection.deleteMany({})
+      )
+    );
+  });
+
+  afterAll(async () => {
+    // Log out and delete the user created in the beforeAll
+    await request(app).post('/api/v1/auth/logout').send({
+      refreshToken,
+    });
+    await User.deleteOne({ email: reqNewUser.email });
+    await mongoose.disconnect();
+  });
+
   describe('given required user details(username, email, role, dob, location, language, gender and categories)', () => {
     test('Should create and save user details to db', async () => {
       const response = await request(app)
         .post('/api/v1/user')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqCreateUser);
-      console.log(response.status, 'status');
-      console.log(response.body, 'body');
 
       userId = response.body._id;
       const mockUserResponse = {
