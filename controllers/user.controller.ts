@@ -16,20 +16,25 @@ import User, { UserObject } from '../mongodb/models/user';
 import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
 import { reqCreateUser } from '../routes/user.test.data';
+import { throwZodError } from '../services/error.service';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.body)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
-    const parsedUser = UserObject.parse(req.body);
-    const user = await createUser(parsedUser);
-    // Send `user_created` analytic to Amplitude
-    if (user) {
-      sendAmplitudeAnalytics('user_created');
-    }
+    try {
+      const parsedUser = UserObject.parse(req.body);
+      const user = await createUser(parsedUser);
+      // Send `user_created` analytic to Amplitude
+      if (user) {
+        sendAmplitudeAnalytics('user_created');
+      }
 
-    return res.status(httpStatus.CREATED).send(reqCreateUser);
+      return res.status(httpStatus.CREATED).send(reqCreateUser);
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
@@ -47,9 +52,10 @@ export const updateUserController = catchAsync(
       const user = await updateUser(req.params.userId, parsedUser);
       return res.status(httpStatus.OK).json(user);
     }
-    return res
-      .status(httpStatus.FORBIDDEN)
-      .json({ message: "You're Not allowed to perform this action" });
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      "You're Not allowed to perform this action"
+    );
   }
 );
 
