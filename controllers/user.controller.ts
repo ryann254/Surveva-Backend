@@ -31,7 +31,7 @@ export const createUserController = catchAsync(
         sendAmplitudeAnalytics('user_created');
       }
 
-      return res.status(httpStatus.CREATED).send(reqCreateUser);
+      return res.status(httpStatus.CREATED).json(user);
     } catch (error) {
       throwZodError(error.message, res);
     }
@@ -45,17 +45,20 @@ export const updateUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    const accountBelongsToUser = await verifyAccountOwnership(req);
+    try {
+      const accountBelongsToUser = await verifyAccountOwnership(req);
 
-    if (accountBelongsToUser) {
-      const parsedUser = UserObject.partial().parse(req.body);
-      const user = await updateUser(req.params.userId, parsedUser);
-      return res.status(httpStatus.OK).json(user);
+      if (accountBelongsToUser) {
+        const parsedUser = UserObject.partial().parse(req.body);
+        const user = await updateUser(req.params.userId, parsedUser);
+        return res.status(httpStatus.OK).json(user);
+      }
+      return res.status(httpStatus.FORBIDDEN).json({
+        message: "You're Not allowed to perform this action",
+      });
+    } catch (error) {
+      throwZodError(error.message, res);
     }
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      "You're Not allowed to perform this action"
-    );
   }
 );
 
@@ -74,19 +77,23 @@ export const deleteUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    const accountBelongsToUser = await verifyAccountOwnership(req);
-    if (accountBelongsToUser) {
-      // Delete all polls associated with the user.
-      await deleteUserPolls(req.params.userId);
-      await deleteUser(req.params.userId);
-      // Delete user analytics from Amplitude
-      await deleteAmplitudeAnalytics([req.params.userId]);
+    try {
+      const accountBelongsToUser = await verifyAccountOwnership(req);
+      if (accountBelongsToUser) {
+        // Delete all polls associated with the user.
+        await deleteUserPolls(req.params.userId);
+        await deleteUser(req.params.userId);
+        // Delete user analytics from Amplitude
+        await deleteAmplitudeAnalytics([req.params.userId]);
+        return res
+          .status(httpStatus.OK)
+          .json({ message: 'User deleted successfully' });
+      }
       return res
-        .status(httpStatus.OK)
-        .json({ message: 'User deleted successfully' });
+        .status(httpStatus.FORBIDDEN)
+        .json({ message: "You're Not allowed to perform this action" });
+    } catch (error) {
+      throwZodError(error.message, res);
     }
-    return res
-      .status(httpStatus.FORBIDDEN)
-      .json({ message: "You're Not allowed to perform this action" });
   }
 );

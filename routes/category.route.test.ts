@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../app';
-import { reqCreateUser, reqUpdateUser } from './user.test.data';
-import { reqLoginUser, reqNewUser } from './auth.test.data';
+import { reqCreateCategory, reqUpdateCategory } from './category.test.data';
+import { reqNewUserCategory, reqLoginUserCategory } from './auth.test.data';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import User from '../mongodb/models/user';
@@ -10,22 +10,19 @@ require('dotenv').config();
 
 let accessToken = '';
 let refreshToken = '';
-let userId = '';
-// Simulate trying to update another user's profile.
-let differentUserId = '';
+let categoryId = '';
 
 jest.setTimeout(100000);
 
-describe('Create, Update, Read and Delete Users', () => {
+describe('Create, Update, Read and Delete Categories', () => {
   beforeAll(async () => {
     await mongoose.connect(config.mongoDBUriTestDB);
 
     // Create a new user then login using their credentials.
-    const user = await User.create(reqNewUser);
-    userId = user._id as string;
+    await User.create(reqNewUserCategory);
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
-      .send(reqLoginUser);
+      .send(reqLoginUserCategory);
     accessToken = loginResponse.body.tokens.access.token;
     refreshToken = loginResponse.body.tokens.refresh.token;
   });
@@ -47,33 +44,33 @@ describe('Create, Update, Read and Delete Users', () => {
   describe('Unauthorized access', () => {
     test('should return an unauthorized access status and error', async () => {
       const response = await request(app)
-        .post('/api/v1/user')
+        .post('/api/v1/category')
         .set('Authorization', 'Bearer token')
-        .send(reqCreateUser);
+        .send(reqCreateCategory);
       expect(response.status).toBe(401);
       expect(response.body.message).toEqual('Please authenticate');
     });
   });
 
-  describe('POST /api/v1/user', () => {
-    test('should create and save user details to db', async () => {
+  describe('POST /api/v1/category', () => {
+    test('should create and save category details to db', async () => {
       const response = await request(app)
-        .post('/api/v1/user')
+        .post('/api/v1/category')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(reqCreateUser);
+        .send(reqCreateCategory);
 
-      differentUserId = response.body._id;
+      categoryId = response.body._id;
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(201);
-      expect(response.body.email).toEqual(reqCreateUser.email);
+      expect(response.body.name).toEqual(reqCreateCategory.name);
     });
 
     test('should return a bad request status and error message', async () => {
       const response = await request(app)
-        .post('/api/v1/user')
+        .post('/api/v1/category')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({});
       expect(response.headers['content-type']).toBe(
@@ -84,88 +81,71 @@ describe('Create, Update, Read and Delete Users', () => {
     });
   });
 
-  describe('GET /api/v1/user', () => {
-    test('should return a user', async () => {
+  describe('GET /api/v1/category', () => {
+    test('should return a categories', async () => {
       const response = await request(app)
-        .get(`/api/v1/user/${userId}`)
+        .get(`/api/v1/category`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(200);
-      expect(response.body.email).toEqual(reqNewUser.email);
+      expect(response.body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('PATCH /api/v1/category', () => {
+    test('should update category details', async () => {
+      const response = await request(app)
+        .patch(`/api/v1/category/${categoryId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdateCategory);
+
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.name).toEqual(reqUpdateCategory.name);
     });
 
-    test('should return not found request status and error message', async () => {
+    test('should return a not found request status and error message', async () => {
       const response = await request(app)
-        .get(`/api/v1/user/666161869d833b40c6a14051`)
+        .patch(`/api/v1/category/666161869d833b40c6a14051`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdateCategory);
+
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/does not exist/i);
+    });
+  });
+
+  describe('DELETE /api/v1/category', () => {
+    test('should delete a category', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/category/${categoryId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.message).toEqual('Deleted category successfully');
+    });
+
+    test('should return a not found request status and error message', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/category/666161869d833b40c6a14051`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(404);
-      expect(response.body.message).toEqual('User not found');
-    });
-  });
-
-  describe('PATCH /api/v1/user', () => {
-    test('should update user details', async () => {
-      const response = await request(app)
-        .patch(`/api/v1/user/${userId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send(reqUpdateUser);
-
-      expect(response.headers['content-type']).toBe(
-        'application/json; charset=utf-8'
-      );
-      expect(response.status).toBe(200);
-      expect(response.body.email).not.toEqual(reqNewUser.email);
-    });
-
-    test('should return a forbidden request status and error message', async () => {
-      const response = await request(app)
-        .patch(`/api/v1/user/${differentUserId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send(reqUpdateUser);
-
-      expect(response.headers['content-type']).toBe(
-        'application/json; charset=utf-8'
-      );
-      expect(response.status).toBe(403);
-      expect(response.body.message).toEqual(
-        "You're Not allowed to perform this action"
-      );
-    });
-  });
-
-  describe('DELETE /api/v1/user', () => {
-    test('should return a forbidden request status and error message', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/user/${differentUserId}`)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect(response.headers['content-type']).toBe(
-        'application/json; charset=utf-8'
-      );
-      expect(response.status).toBe(403);
-      expect(response.body.message).toEqual(
-        "You're Not allowed to perform this action"
-      );
-    });
-
-    // Delete the user last as deleting the user will also delete the accessToken.
-    test('should delete a user', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/user/${userId}`)
-        .set('Authorization', `Bearer ${accessToken}`);
-
-      expect(response.headers['content-type']).toBe(
-        'application/json; charset=utf-8'
-      );
-      expect(response.status).toBe(200);
-      expect(response.body.message).toEqual('User deleted successfully');
+      expect(response.body.message).toEqual('Category not found');
     });
   });
 });

@@ -9,16 +9,20 @@ import {
 } from '../services/category.service';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
+import { throwZodError } from '../services/error.service';
 
 export const createCategoryController = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.body)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+    try {
+      const parsedCategory = CategoryObject.parse(req.body);
+      const category = await createCategory(parsedCategory);
 
-    const parsedCategory = CategoryObject.parse(req.body);
-    const category = await createCategory(parsedCategory);
-
-    return res.status(httpStatus.CREATED).json(category);
+      return res.status(httpStatus.CREATED).json(category);
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
@@ -36,13 +40,17 @@ export const updateCategoryController = catchAsync(
     if (!req.params.categoryId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');
 
-    const parsedCategory = CategoryObject.partial().parse(req.body);
-    const category = await updateCategory(
-      req.params.categoryId,
-      parsedCategory
-    );
+    try {
+      const parsedCategory = CategoryObject.parse(req.body);
+      const category = await updateCategory(
+        req.params.categoryId,
+        parsedCategory
+      );
 
-    return res.status(httpStatus.OK).json(category);
+      return res.status(httpStatus.OK).json(category);
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
@@ -51,7 +59,11 @@ export const deleteCategoryController = catchAsync(
     if (!req.params.categoryId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');
 
-    await deleteCategory(req.params.categoryId);
+    const category = await deleteCategory(req.params.categoryId);
+
+    if (!category) {
+      throw new ApiError(httpStatus.NOT_FOUND, 'Category not found');
+    }
 
     return res.status(httpStatus.OK).json({
       message: 'Deleted category successfully',

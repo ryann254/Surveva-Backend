@@ -9,7 +9,7 @@ import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-router.route('/').post(createUserController);
+router.route('/').post(authMiddleware(['manageUsers']), createUserController);
 router
   .route('/:userId')
   .get(authMiddleware(['manageUsers']), getUserController)

@@ -34,7 +34,7 @@ export const updateCategory = async (
 
   if (!category) {
     throw new ApiError(
-      httpStatus.BAD_REQUEST,
+      httpStatus.NOT_FOUND,
       `Category with id: ${categoryId} does not exist`
     );
   }

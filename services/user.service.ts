@@ -32,7 +32,14 @@ export const createUser = async (userBody: IUserSchema): Promise<IUserDoc> => {
  */
 export const getUserById = async (
   userId: mongoose.Types.ObjectId
-): Promise<IUserDoc | null> => User.findById(userId);
+): Promise<IUserDoc | null> => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  return user;
+};
 
 /**
  * Get user by email
@@ -55,7 +62,7 @@ export const updateUser = async (
 
   if (!user)
     throw new ApiError(
-      httpStatus.BAD_REQUEST,
+      httpStatus.NOT_FOUND,
       `User with id: ${userId} does not exist`
     );
 
@@ -86,7 +93,9 @@ export const deleteUserPolls = async (userId: mongoose.Types.ObjectId) => {
 export const deleteUser = async (userId: mongoose.Types.ObjectId) => {
   // Revoke user tokens
   await Token.deleteMany({ user: userId });
-  await User.findOneAndDelete({ _id: userId });
+  const user = await User.findOneAndDelete({ _id: userId });
+
+  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
 };
 
 /**
