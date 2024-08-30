@@ -13,7 +13,7 @@ import { throwZodError } from '../services/error.service';
 
 export const createCategoryController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     try {
       const parsedCategory = CategoryObject.parse(req.body);
@@ -35,7 +35,7 @@ export const getAllCategoriesController = catchAsync(
 
 export const updateCategoryController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     if (!req.params.categoryId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');

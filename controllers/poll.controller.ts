@@ -16,7 +16,7 @@ import {
   verifyPollOwnership,
 } from '../services/poll.service';
 import { sendAmplitudeAnalytics } from '../utils/handleAmplitudeAnalytics';
-import { QMSObject } from '../mongodb/models/qms';
+import QMS, { QMSObject } from '../mongodb/models/qms';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
 import { config, logger } from '../config';
@@ -25,41 +25,46 @@ import { getUserById } from '../services/user.service';
 import { IUserDoc } from '../mongodb/models/user';
 import { discoverySectionAlgorithm } from '../services/dsa.service';
 import pick from '../utils/pick';
+import { throwZodError } from '../services/error.service';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
-    const parsedPoll = QMSObject.parse(req.body);
-    // Check for moderation using the open ai api
-    const contentIsHarmful = await checkForModeration(parsedPoll.question);
+    try {
+      const parsedPoll = QMSObject.parse(req.body);
+      // Check for moderation using the open ai api
+      const contentIsHarmful = await checkForModeration(parsedPoll.question);
 
-    if (!contentIsHarmful) {
-      // Check for category and language from the open ai api
-      const updatedPoll =
-        config.useOpenAi === 'true'
-          ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
-          : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
-      // Activate the QMS to fetch 10 polls.
-      const user = await getUserById(req.user._id);
-      const qmsPolls = await queueMangagementSystem(
-        parsedPoll,
-        user as IUserDoc
-      );
-      logger.info(`${qmsPolls.length} qmsPolls were retrieved`);
-      const poll = await createPoll(updatedPoll);
-      // Send `poll_created` analytic to Amplitude
-      if (poll) {
-        sendAmplitudeAnalytics('poll_created');
+      if (!contentIsHarmful) {
+        // Check for category and language from the open ai api
+        const updatedPoll =
+          config.useOpenAi === 'true'
+            ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
+            : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
+        // Activate the QMS to fetch 10 polls.
+        const user = await getUserById(req.user._id);
+        const qmsPolls = await queueMangagementSystem(
+          parsedPoll,
+          user as IUserDoc
+        );
+        logger.info(`${qmsPolls.length} qmsPolls were retrieved`);
+        const poll = await createPoll(updatedPoll);
+        // Send `poll_created` analytic to Amplitude
+        if (poll) {
+          sendAmplitudeAnalytics('poll_created');
+        }
+
+        return res.status(httpStatus.CREATED).json(qmsPolls);
       }
-
-      return res.status(httpStatus.CREATED).json(qmsPolls);
+      return res.status(httpStatus.BAD_REQUEST).json({
+        message:
+          'The content you have posted is potentially harmful. Edit it and try again',
+      });
+    } catch (error) {
+      throwZodError(error.message, res);
     }
-    return res.status(httpStatus.BAD_REQUEST).json({
-      message:
-        'The content you have posted is potentially harmful. Edit it and try again',
-    });
   }
 );
 
@@ -75,7 +80,7 @@ export const searchPollsController = catchAsync(
 
 export const updatePollController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     if (!req.params.pollId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');

@@ -20,7 +20,7 @@ import { throwZodError } from '../services/error.service';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     try {
@@ -40,7 +40,7 @@ export const createUserController = catchAsync(
 
 export const updateUserController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       return new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');

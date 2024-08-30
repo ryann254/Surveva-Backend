@@ -21,7 +21,7 @@ import { sendVerificationEmail, verifyEmail } from '../services/email.service';
 
 export const registerController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     const parsedUser = UserObject.parse(req.body);
     const user = await createUser(parsedUser);
@@ -33,7 +33,7 @@ export const registerController = catchAsync(
 
 export const loginController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
     const { email, password } = req.body;
@@ -46,7 +46,7 @@ export const loginController = catchAsync(
 
 export const loginWithGoogleOrFacebookController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     const parsedUser = UserObject.parse(req.body);
     const user = await loginUserWithGoogleOrFacebook(parsedUser);
@@ -106,7 +106,7 @@ export const resetPasswordController = catchAsync(
 // TODO: Instead of using a token to verify the email, use six generated numbers.
 export const sendVerificationEmailController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.body)
+    if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
     const user: ITokenUser = req.body;
     const verifyEmailToken = await generateVerifyEmailToken(user);

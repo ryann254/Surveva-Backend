@@ -262,15 +262,9 @@ export const checkForCategoryAndLanguageOpenAI = async (
     const parsedResult = openAIResponseObject.parse(response);
 
     const categoryId = categories.find(
-      (category) => category.name === parsedResult.category
+      (category) =>
+        category.name.toLowerCase() === parsedResult.category.toLowerCase()
     )?.id;
-
-    // If there no matching category ids, it means the AI hallucinated and gave a new category. Retry the request.
-    if (!categoryId && numberOfRetries < 1) {
-      numberOfRetries += 1;
-      logger.info('Retrying category and language detection request...');
-      checkForCategoryAndLanguageOpenAI(parsedPoll);
-    }
 
     parsedPoll.category = categoryId || '';
     parsedPoll.language = parsedResult.language.toLowerCase();

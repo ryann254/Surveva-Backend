@@ -38,4 +38,31 @@ const reqNewUserCategory = {
   categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
 };
 
-export { reqLoginUser, reqNewUser, reqNewUserCategory, reqLoginUserCategory };
+const reqLoginUserPoll = {
+  email: 'nico.robin@strawhats.com',
+  password: 'robin1234@24',
+};
+
+const reqNewUserPoll = {
+  username: 'Nico Robin',
+  password: 'robin1234@24',
+  email: 'nico.robin@strawhats.com',
+  role: 'admin',
+  dob: '1990-02-06',
+  location: {
+    country: 'Japan',
+    continent: 'Asia',
+  },
+  language: 'Japanese',
+  gender: 'female',
+  categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
+};
+
+export {
+  reqLoginUser,
+  reqNewUser,
+  reqNewUserCategory,
+  reqLoginUserCategory,
+  reqNewUserPoll,
+  reqLoginUserPoll,
+};

@@ -7,6 +7,7 @@ import { IUserDoc, IUserSchema } from '../mongodb/models/user';
 import OpenAI from 'openai';
 import { config, logger } from '../config';
 import { zodFunction } from 'openai/helpers/zod';
+import { fetchQMSAdminPolls } from './dsa.service';
 
 /**
  * Translate polls from original language to the provided language
@@ -176,12 +177,22 @@ export const queueMangagementSystem = async (
   // If the `qmsPolls` are still less than 10 then, fetch random polls and translate if necessary.
   if (qmsPolls.length < 10 && parsedPoll.category !== '') {
     const qmsPollIds = qmsPolls.map((poll) => poll._id);
-    const randomPolls = await QMS.find({
+    let randomPolls = await QMS.find({
       $and: [
         { _id: { $nin: qmsPollIds } },
         { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
       ],
     }).limit(10);
+
+    // If the random polls are less than 10, then fetch admin polls
+    if (randomPolls.length < 10) {
+      const adminPolls = await fetchQMSAdminPolls(
+        qmsPollIds as string[],
+        0,
+        10 - randomPolls.length
+      );
+      randomPolls = randomPolls.concat(adminPolls);
+    }
 
     const translatedPolls = await Promise.all(
       randomPolls.map(async (poll) => {

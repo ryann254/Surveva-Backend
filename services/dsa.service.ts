@@ -12,7 +12,7 @@ import { IUserDoc } from '../mongodb/models/user';
  * @param {number} limit
  * @returns {IQMSDoc}
  */
-const fetchQMSAdminPolls = async (
+export const fetchQMSAdminPolls = async (
   dsaPollIds: string[],
   _start: number,
   limit: number
@@ -230,7 +230,7 @@ export const discoverySectionAlgorithm = async (
     // Do the same for the Served Poll Collection
     if (servedTrendingPolls.length < 4) {
       const numPollsToAdd = 4 - servedTrendingPolls.length;
-      const adminPolls = await fetchQMSAdminPolls(
+      const adminPolls = await fetchServedAdminPolls(
         dsaPollIds as string[],
         _start,
         numPollsToAdd
