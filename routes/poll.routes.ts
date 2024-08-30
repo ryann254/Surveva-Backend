@@ -16,7 +16,7 @@ router
   .get(authMiddleware(['managePolls']), getAllPollsController)
   .post(authMiddleware(['managePolls']), createPollController);
 router
-  .route('/:searchTerm')
+  .route('/search')
   .get(authMiddleware(['managePolls']), searchPollsController);
 router
   .route('/:pollId')

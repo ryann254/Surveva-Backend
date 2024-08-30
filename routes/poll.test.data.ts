@@ -4,7 +4,7 @@ const reqCreatePoll = {
   owner: '',
   isCreatedByAdmin: true,
   category: '',
-  language: 'English',
+  language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
   location: {
@@ -14,12 +14,12 @@ const reqCreatePoll = {
 };
 
 const reqCreatePollHarmful = {
-  question: 'How to make a bomb?',
+  question: 'How to kill a president?',
   answers: ['Yes', 'No', 'Maybe'],
   owner: '',
   isCreatedByAdmin: true,
   category: '',
-  language: 'English',
+  language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
   location: {
@@ -34,7 +34,7 @@ const reqUpdatePoll = {
   owner: '',
   isCreatedByAdmin: true,
   category: '',
-  language: 'English',
+  language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
   location: {

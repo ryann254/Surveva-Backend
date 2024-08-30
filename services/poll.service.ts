@@ -124,7 +124,7 @@ export const updatePoll = async (
 
   if (!poll)
     throw new ApiError(
-      httpStatus.BAD_REQUEST,
+      httpStatus.NOT_FOUND,
       `Poll with id: ${pollId} does not exist`
     );
 
@@ -151,7 +151,7 @@ export const verifyPollOwnership = async (req: Request): Promise<boolean> => {
   if (req.user.role === 'admin') return true;
 
   const pollDoc = await getPollById(req.params.pollId);
-  if (!pollDoc) throw new ApiError(httpStatus.BAD_REQUEST, 'Poll Not found');
+  if (!pollDoc) throw new ApiError(httpStatus.NOT_FOUND, 'Poll Not found');
 
   return pollDoc.owner.toString() === req.user._id.toString();
 };

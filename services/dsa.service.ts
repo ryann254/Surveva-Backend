@@ -224,7 +224,7 @@ export const discoverySectionAlgorithm = async (
         numPollsToAdd
       );
 
-      qmsTrendingPolls.concat(adminPolls);
+      qmsTrendingPolls = qmsTrendingPolls.concat(adminPolls);
     }
 
     // Do the same for the Served Poll Collection
@@ -236,7 +236,7 @@ export const discoverySectionAlgorithm = async (
         numPollsToAdd
       );
 
-      servedTrendingPolls.concat(adminPolls);
+      servedTrendingPolls = servedTrendingPolls.concat(adminPolls);
     }
 
     const filteredQMSTrendingPolls = qmsTrendingPolls.filter(
