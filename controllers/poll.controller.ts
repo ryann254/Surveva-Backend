@@ -97,15 +97,11 @@ export const updatePollController = catchAsync(
           req.body,
           user
         );
-        const poll = await updatePoll(req.params.pollId, parsedPoll);
-
         // Check if poll has reached the required number of responses.
         // If yes, then move the poll to the Served Poll collection
-        await checkForNumberOfResponses(poll, req.params.pollId);
+        await checkForNumberOfResponses(result.poll, req.params.pollId);
 
-        return res
-          .status(httpStatus.OK)
-          .json({ poll, resetCategoryIndex: result });
+        return res.status(httpStatus.OK).json(result);
       }
 
       // Skip the AI calls if a user is clicking, voting, liking or commenting on a poll.

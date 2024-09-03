@@ -43,4 +43,34 @@ const reqUpdatePoll = {
   },
 };
 
-export { reqCreatePoll, reqUpdatePoll, reqCreatePollHarmful };
+const reqUpdatePollActionTypeVoted = {
+  ...reqUpdatePoll,
+  responses: [
+    {
+      answer: 'Donald Trump',
+      origin: 'dsa',
+      geography: 'Asia',
+      age: '1990/03/23',
+      gender: 'male',
+    },
+  ],
+};
+
+const reqUpdatePollActionTypeCommented = {
+  ...reqUpdatePoll,
+  comments: ['This is a test comment'],
+};
+
+const reqUpdatePollActionTypeLiked = {
+  ...reqUpdatePoll,
+  likes: 1,
+};
+
+export {
+  reqCreatePoll,
+  reqUpdatePoll,
+  reqCreatePollHarmful,
+  reqUpdatePollActionTypeVoted,
+  reqUpdatePollActionTypeCommented,
+  reqUpdatePollActionTypeLiked,
+};

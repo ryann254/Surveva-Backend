@@ -4,6 +4,9 @@ import {
   reqCreatePoll,
   reqUpdatePoll,
   reqCreatePollHarmful,
+  reqUpdatePollActionTypeVoted,
+  reqUpdatePollActionTypeCommented,
+  reqUpdatePollActionTypeLiked,
 } from './poll.test.data';
 import { reqNewUserPoll, reqLoginUserPoll } from './auth.test.data';
 import mongoose from 'mongoose';
@@ -186,9 +189,63 @@ describe('Create, Update, Read and Delete Polls', () => {
       expect(response.body.question).toEqual(reqUpdatePoll.question);
     });
 
-    test('should update popularityCount(clicks or votes)', () => {});
+    test('should update popularityCount and create a new response', async () => {
+      await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=clicked`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePoll);
 
-    test('should create a new comment and increment like counter', () => {});
+      const response = await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=voted`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePollActionTypeVoted);
+
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.poll.popularityCount).toEqual(11);
+      expect(response.body.poll.responses.length).toBeGreaterThan(0);
+      expect(response.body.resetCategoryIndex).toBe(false);
+    });
+
+    test('should update popularityCount and likes', async () => {
+      await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=clicked`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePoll);
+
+      const responseLiked = await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=liked`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePollActionTypeLiked);
+
+      expect(responseLiked.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(responseLiked.status).toBe(200);
+      expect(responseLiked.body.poll.popularityCount).toEqual(23);
+      expect(responseLiked.body.poll.likes).toEqual(1);
+    });
+
+    test('should update popularityCount and comments', async () => {
+      await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=clicked`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePoll);
+
+      const responseCommented = await request(app)
+        .patch(`/api/v1/poll/${pollId}?actionType=commented`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqUpdatePollActionTypeCommented);
+
+      expect(responseCommented.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(responseCommented.status).toBe(200);
+      expect(responseCommented.body.poll.popularityCount).toEqual(37);
+      expect(responseCommented.body.poll.comments.length).toEqual(1);
+    });
 
     test('should return a not found request status and error message', async () => {
       const response = await request(app)
@@ -204,29 +261,30 @@ describe('Create, Update, Read and Delete Polls', () => {
     });
   });
 
-  // describe('DELETE /api/v1/poll/:pollId', () => {
-  //   test('should delete a poll', async () => {
-  //     const response = await request(app)
-  //       .delete(`/api/v1/poll/${pollId}`)
-  //       .set('Authorization', `Bearer ${accessToken}`);
+  describe('DELETE /api/v1/poll/:pollId', () => {
+    test('should delete a poll', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/poll/${pollId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
 
-  //     expect(response.headers['content-type']).toBe(
-  //       'application/json; charset=utf-8'
-  //     );
-  //     expect(response.status).toBe(200);
-  //     expect(response.body.message).toEqual('Poll deleted successfully');
-  //   });
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(200);
+      expect(response.body.message).toEqual('Poll deleted successfully');
+    });
 
-  //   test('should return a not found request status and error message', async () => {
-  //     const response = await request(app)
-  //       .delete(`/api/v1/poll/666161869d833b40c6a14051`)
-  //       .set('Authorization', `Bearer ${accessToken}`);
+    test('should return a not found request status and error message', async () => {
+      const response = await request(app)
+        .delete(`/api/v1/poll/666161869d833b40c6a14051`)
+        .set('Authorization', `Bearer ${accessToken}`);
+      console.log(response.body);
 
-  //     expect(response.headers['content-type']).toBe(
-  //       'application/json; charset=utf-8'
-  //     );
-  //     expect(response.status).toBe(404);
-  //     expect(response.body.message).toMatch(/not found/i);
-  //   });
-  // });
+      expect(response.headers['content-type']).toBe(
+        'application/json; charset=utf-8'
+      );
+      expect(response.status).toBe(404);
+      expect(response.body.message).toMatch(/not found/i);
+    });
+  });
 });

@@ -69,7 +69,7 @@ export const updatePopularityCount = async (
   actionType: string,
   pollBody: IQMSSchema,
   user: IUserDoc | null
-): Promise<boolean> => {
+): Promise<{ poll: IQMSDoc; resetCategoryIndex: boolean }> => {
   const poll = await getPollById(pollId);
 
   if (!poll)
@@ -94,16 +94,18 @@ export const updatePopularityCount = async (
         poll.popularityCount += 6;
 
         // TODO: Create controllers and services for comments
-        if (poll.comments?.length) {
+        if (pollBody.comments?.length) {
           const latestComment = pollBody.comments?.pop();
-          const comment = await Comment.create(latestComment);
+          const comment = await Comment.create({
+            comment: latestComment,
+            author: user?._id,
+          });
           poll.comments?.push(comment._id as string);
         }
         break;
       case ActionTypes.LIKED:
         poll.popularityCount += 4;
-        // TODO: Add a service to increment and decrement likes
-        if (poll.likes) poll.likes += 1;
+        if (pollBody.likes) poll.likes = pollBody.likes;
         break;
       default:
         throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid action type');
@@ -118,11 +120,11 @@ export const updatePopularityCount = async (
       user?.categories.push(poll.category);
       user.save();
 
-      return true;
+      return { poll, resetCategoryIndex: true };
     }
   }
 
-  return false;
+  return { poll, resetCategoryIndex: false };
 };
 
 /**
@@ -153,8 +155,13 @@ export const updatePoll = async (
  * @param {mongoose.Types.ObjectId} pollId
  */
 
-export const deletePoll = async (pollId: mongoose.Types.ObjectId) =>
-  QMS.findOneAndDelete({ _id: pollId });
+export const deletePoll = async (pollId: mongoose.Types.ObjectId) => {
+  const result = await QMS.findOneAndDelete({ _id: pollId });
+
+  if (!result) throw new ApiError(httpStatus.NOT_FOUND, 'Poll not found');
+
+  return result;
+};
 
 /**
  * Verify the poll belongs to a user
@@ -310,11 +317,11 @@ export const servePoll = async (pollId: mongoose.Types.ObjectId) => {
 
 /**
  * Check for the number of responses a poll should get
- * @param {IQMSSchema} parsedPoll
+ * @param {IQMSDoc} parsedPoll
  * @param {string} pollId
  */
 export const checkForNumberOfResponses = async (
-  parsedPoll: IQMSSchema,
+  parsedPoll: IQMSDoc,
   pollId: mongoose.Types.ObjectId
 ) => {
   // TODO: Add a service to verify the transaction Id from Google/Apple payments to know how much a user paid and hence how many responses their poll should get.
