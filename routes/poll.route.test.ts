@@ -195,7 +195,6 @@ describe('Create, Update, Read and Delete Polls', () => {
         .patch(`/api/v1/poll/666161869d833b40c6a14051`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqUpdatePoll);
-      console.log(response.status, response.body);
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'

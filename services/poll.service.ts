@@ -15,6 +15,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
 import { IUserDoc, IUserSchema } from '../mongodb/models/user';
 import { jsonToObject } from '../utils/jsonToObject';
+import Comment from '../mongodb/models/comment';
 
 /**
  * Create a poll
@@ -66,6 +67,7 @@ export const searchPolls = async (searchTerm: string): Promise<IQMSDoc[]> => {
 export const updatePopularityCount = async (
   pollId: mongoose.Types.ObjectId,
   actionType: string,
+  pollBody: IQMSSchema,
   user: IUserDoc | null
 ): Promise<boolean> => {
   const poll = await getPollById(pollId);
@@ -83,12 +85,25 @@ export const updatePopularityCount = async (
         break;
       case ActionTypes.VOTED:
         poll.popularityCount += 2;
+
+        if (poll.responses) {
+          poll.responses = pollBody.responses;
+        }
         break;
       case ActionTypes.COMMENTED:
         poll.popularityCount += 6;
+
+        // TODO: Create controllers and services for comments
+        if (poll.comments?.length) {
+          const latestComment = pollBody.comments?.pop();
+          const comment = await Comment.create(latestComment);
+          poll.comments?.push(comment._id as string);
+        }
         break;
       case ActionTypes.LIKED:
         poll.popularityCount += 4;
+        // TODO: Add a service to increment and decrement likes
+        if (poll.likes) poll.likes += 1;
         break;
       default:
         throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid action type');
@@ -228,7 +243,6 @@ export const checkForCategoryAndLanguageGeminiFlash = async (
  * Check for category and language using Open Ai's API
  * @param {IQMSSchema} parsedPoll
  */
-let numberOfRetries = 0;
 export const checkForCategoryAndLanguageOpenAI = async (
   parsedPoll: IQMSSchema
 ): Promise<IQMSSchema> => {

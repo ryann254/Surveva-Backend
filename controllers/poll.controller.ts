@@ -94,6 +94,7 @@ export const updatePollController = catchAsync(
         const result = await updatePopularityCount(
           req.params.pollId,
           req.query.actionType,
+          req.body,
           user
         );
         const poll = await updatePoll(req.params.pollId, parsedPoll);
