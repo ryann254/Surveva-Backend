@@ -13,10 +13,7 @@ import mongoose from 'mongoose';
 import { config } from '../config';
 import User, { IUserDoc } from '../mongodb/models/user';
 
-require('dotenv').config();
-
 let accessToken = '';
-let refreshToken = '';
 let user: IUserDoc | null = null;
 let pollId = '';
 
@@ -32,7 +29,6 @@ describe('Create, Update, Read and Delete Polls', () => {
       .post('/api/v1/auth/login')
       .send(reqLoginUserPoll);
     accessToken = loginResponse.body.tokens.access.token;
-    refreshToken = loginResponse.body.tokens.refresh.token;
 
     // Create categories
     const categories = [

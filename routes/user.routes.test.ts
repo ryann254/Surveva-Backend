@@ -6,8 +6,6 @@ import mongoose from 'mongoose';
 import { config } from '../config';
 import User from '../mongodb/models/user';
 
-require('dotenv').config();
-
 let accessToken = '';
 let refreshToken = '';
 let userId = '';

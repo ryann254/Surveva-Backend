@@ -18,16 +18,21 @@ import {
 } from '../services/auth.service';
 import { logger } from '../config';
 import { sendVerificationEmail, verifyEmail } from '../services/email.service';
+import { throwZodError } from '../services/error.service';
 
 export const registerController = catchAsync(
   async (req: Request, res: Response) => {
     if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
-    const parsedUser = UserObject.parse(req.body);
-    const user = await createUser(parsedUser);
-    const tokens = await generateAuthTokens(user as ITokenUser);
+    try {
+      const parsedUser = UserObject.parse(req.body);
+      const user = await createUser(parsedUser);
+      const tokens = await generateAuthTokens(user as ITokenUser);
 
-    return res.status(httpStatus.CREATED).json({ user, tokens });
+      return res.status(httpStatus.CREATED).json({ user, tokens });
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
@@ -48,11 +53,16 @@ export const loginWithGoogleOrFacebookController = catchAsync(
   async (req: Request, res: Response) => {
     if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
-    const parsedUser = UserObject.parse(req.body);
-    const user = await loginUserWithGoogleOrFacebook(parsedUser);
-    const tokens = await generateAuthTokens(user as ITokenUser);
 
-    return res.status(httpStatus.OK).json({ user, tokens });
+    try {
+      const parsedUser = UserObject.parse(req.body);
+      const user = await loginUserWithGoogleOrFacebook(parsedUser);
+      const tokens = await generateAuthTokens(user as ITokenUser);
+
+      return res.status(httpStatus.OK).json({ user, tokens });
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
@@ -70,9 +80,12 @@ export const refreshTokensController = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.body.refreshToken)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Refresh token is required');
-
-    const userWithTokens = await refreshAuthTokens(req.body.refreshToken);
-    return res.status(httpStatus.OK).json(userWithTokens);
+    try {
+      const userWithTokens = await refreshAuthTokens(req.body.refreshToken);
+      return res.status(httpStatus.OK).json(userWithTokens);
+    } catch (error) {
+      throwZodError(error.message, res);
+    }
   }
 );
 
