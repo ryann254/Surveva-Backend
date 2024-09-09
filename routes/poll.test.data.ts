@@ -66,6 +66,61 @@ const reqUpdatePollActionTypeLiked = {
   likes: 1,
 };
 
+const reqCreatePollForQMSLayer1 = {
+  question: 'What is your favorite programming language?',
+  answers: ['JavaScript', 'Python', 'Java', 'C++'],
+  owner: '66b494e38ca16b2917fa431e',
+  isCreatedByAdmin: false,
+  category: '',
+  language: '',
+  servedAt: new Date().toISOString(),
+  paid: '66b494e38ca16b2917fa431e',
+  location: {
+    country: 'United States',
+    continent: 'North America',
+  },
+};
+
+// Add more test polls with different categories, languages, and locations
+const additionalTestPolls = [
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Is C++ a good programming language?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Science and Technology',
+    language: 'English',
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Who was the best president of the United States?',
+    answers: ['Donald Trump', 'Joe Biden', 'Barack Obama', 'George W. Bush'],
+    category: 'Politics',
+    language: 'English',
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What is your favorite cuisine?',
+    answers: ['Italian', 'Chinese', 'Mexican', 'Indian'],
+    category: 'Health and Food',
+    language: 'English',
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Kati ya David Guetta na Avicci nani mkali?',
+    answers: ['David Guetta', 'Avicci', 'Wote', 'Hakuna'],
+    category: 'Media and Entertainment',
+    language: 'Swahili',
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Who is the best character in one piece?',
+    answers: ['Luffy', 'Zoro', 'Sanji', 'Nami'],
+    category: 'Media and Entertainment',
+    language: 'English',
+  },
+  // Add more test polls as needed
+];
+
 export {
   reqCreatePoll,
   reqUpdatePoll,
@@ -73,4 +128,6 @@ export {
   reqUpdatePollActionTypeVoted,
   reqUpdatePollActionTypeCommented,
   reqUpdatePollActionTypeLiked,
+  reqCreatePollForQMSLayer1,
+  additionalTestPolls,
 };

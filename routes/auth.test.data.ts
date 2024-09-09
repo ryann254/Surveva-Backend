@@ -58,11 +58,21 @@ const reqNewUserPoll = {
   categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
 };
 
+const reqNewUserQMS = {
+  ...reqNewUserPoll,
+  location: {
+    country: 'United States',
+    continent: 'North America',
+  },
+  language: 'English',
+};
+
 export {
   reqLoginUser,
   reqNewUser,
   reqNewUserCategory,
   reqLoginUserCategory,
   reqNewUserPoll,
+  reqNewUserQMS,
   reqLoginUserPoll,
 };
