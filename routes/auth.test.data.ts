@@ -67,6 +67,16 @@ const reqNewUserQMS = {
   language: 'English',
 };
 
+const reqNewUserQMS2 = {
+  ...reqNewUserPoll,
+  email: 'yamato@strawhats.com',
+  location: {
+    country: 'Kenya',
+    continent: 'Africa',
+  },
+  language: 'English',
+};
+
 export {
   reqLoginUser,
   reqNewUser,
@@ -74,5 +84,6 @@ export {
   reqLoginUserCategory,
   reqNewUserPoll,
   reqNewUserQMS,
+  reqNewUserQMS2,
   reqLoginUserPoll,
 };

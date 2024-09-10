@@ -7,10 +7,6 @@ const reqCreatePoll = {
   language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
-  location: {
-    country: 'Japan',
-    continent: 'Asia',
-  },
 };
 
 const reqCreatePollHarmful = {
@@ -22,10 +18,6 @@ const reqCreatePollHarmful = {
   language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
-  location: {
-    country: 'Japan',
-    continent: 'Asia',
-  },
 };
 
 const reqSearchPoll = {
@@ -44,10 +36,6 @@ const reqUpdatePoll = {
   language: 'Japanese',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
-  location: {
-    country: 'Japan',
-    continent: 'Asia',
-  },
 };
 
 const reqUpdatePollActionTypeVoted = {
@@ -82,10 +70,6 @@ const reqCreatePollForQMSLayer1 = {
   language: '',
   servedAt: new Date().toISOString(),
   paid: '66b494e38ca16b2917fa431e',
-  location: {
-    country: 'United States',
-    continent: 'North America',
-  },
 };
 
 const reqCreatePollForQMSLayer2 = {
@@ -145,6 +129,89 @@ const additionalTestPolls = [
   // Add more test polls as needed
 ];
 
+const dsaLayer1Polls = [
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Is C++ a good programming language?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 1,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What is the best way to learn programming?',
+    answers: ['By doing it yourself', 'By reading books', 'By watching videos', 'By asking for help'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 2,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What\'s the best AI out there righ now?',
+    answers: ['OpenAI', 'Google', 'Microsoft', 'Apple'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 3,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Should a software developer be a good programmer?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 4,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What programming language do I need to learn for gaming?',
+    answers: ['JavaScript', 'Python', 'Java', 'C++'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 5,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Will humans ever be able to travel to Mars using SpaceX?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Science and Technology',
+    language: 'English',
+    popularityCount: 6,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Who\'s the strongest hashira in Demon Slayer?',
+    answers: ['Gyomei', 'Kyojuro', 'Tengen', 'Obanai'],
+    category: 'Media and Entertainment',
+    language: 'English',
+    popularityCount: 7,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What are the breathing styles in Demon Slayer?',
+    answers: ['Water Breathing', 'Wind Breathing', 'Fire Breathing', 'Earth Breathing'],
+    category: 'Media and Entertainment',
+    language: 'English',
+    popularityCount: 8,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Is Luffy stronger than all the admirals?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Media and Entertainment',
+    language: 'English',
+    popularityCount: 9,
+  },
+  {
+    ...reqCreatePollForQMSLayer1,
+    question: 'Does brook have a better devil fruit than Aokiji?',
+    answers: ['Yes', 'No', 'Maybe'],
+    category: 'Media and Entertainment',
+    language: 'English',
+    popularityCount: 10,
+  }
+]
+
 export {
   reqCreatePoll,
   reqSearchPoll,
@@ -159,4 +226,5 @@ export {
   reqCreatePollForQMSLayer4a,
   reqCreatePollForQMSLayer4b,
   additionalTestPolls,
+  dsaLayer1Polls
 };

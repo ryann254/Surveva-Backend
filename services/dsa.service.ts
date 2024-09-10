@@ -68,6 +68,7 @@ const fetchQMSCategoriesAndLanguagePolls = async (
     ],
   })
     .skip(_start)
+    .sort({ popularityCount: -1 })
     .limit(limit);
 
 /**
@@ -92,6 +93,7 @@ const fetchServedCategoriesAndLanguagePolls = async (
     ],
   })
     .skip(_start)
+    .sort({ popularityCount: -1 })
     .limit(limit);
 
 /**
