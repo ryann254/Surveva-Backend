@@ -81,6 +81,18 @@ const reqCreatePollForQMSLayer1 = {
   },
 };
 
+const reqCreatePollForQMSLayer2 = {
+  ...reqCreatePollForQMSLayer1,
+  question: 'Which team won the champions league in 2021?',
+  answers: ['Chelsea', 'Manchester City', 'Liverpool', 'Arsenal'],
+};
+
+const reqCreatePollForQMSLayer3 = {
+  ...reqCreatePollForQMSLayer1,
+  question: 'Who is the most successful businessman in 2022?',
+  answers: ['Elon Musk', 'Jeff Bezos', 'Bill Gates', 'Warren Buffett'],
+};
+
 // Add more test polls with different categories, languages, and locations
 const additionalTestPolls = [
   {
@@ -129,5 +141,7 @@ export {
   reqUpdatePollActionTypeCommented,
   reqUpdatePollActionTypeLiked,
   reqCreatePollForQMSLayer1,
+  reqCreatePollForQMSLayer2,
+  reqCreatePollForQMSLayer3,
   additionalTestPolls,
 };

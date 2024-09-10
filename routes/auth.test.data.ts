@@ -55,7 +55,7 @@ const reqNewUserPoll = {
   },
   language: 'Japanese',
   gender: 'female',
-  categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
+  categories: ['669616cc6ce23313d6b36715'],
 };
 
 const reqNewUserQMS = {

@@ -3,7 +3,9 @@ import httpStatus from 'http-status';
 import app from '../app';
 import {
   reqCreatePollForQMSLayer1,
+  reqCreatePollForQMSLayer2,
   additionalTestPolls,
+  reqCreatePollForQMSLayer3,
 } from './poll.test.data';
 import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
@@ -15,6 +17,7 @@ let user;
 let accessToken: string;
 let categoriesData: Record<string, any>[] = [];
 let categoryMap: Map<string, string>;
+let updatedAdditionalPolls: any[] = [];
 
 jest.setTimeout(100000);
 
@@ -46,16 +49,16 @@ describe('QMS integration tests', () => {
           .set('Authorization', `Bearer ${accessToken}`)
           .send({ name: category });
 
-        categoriesData.push(res);
+        categoriesData.push(res.body);
       })
     );
     // Map categories to their IDs
-    categoryMap = new Map(categoriesData.map((cat) => [cat.category, cat.id]));
-
+    categoryMap = new Map(categoriesData.map((cat) => [cat.name, cat._id]));
+    
     // Update additionalTestPolls with category IDs
-    const updatedAdditionalPolls = additionalTestPolls.map((poll) => ({
-      ...poll,
-      category: categoryMap.get(poll.category) || poll.category,
+    updatedAdditionalPolls = additionalTestPolls.map((poll) => ({
+        ...poll,
+        category: categoryMap.get(poll.category) || poll.category,
     }));
 
     // Populate QMS with updated test polls
@@ -79,81 +82,53 @@ describe('QMS integration tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqCreatePollForQMSLayer1)
         .expect(httpStatus.CREATED);
-      console.log(response.body);
 
       expect(response.body).toHaveLength(5);
       expect(response.body[0].category).toEqual(
-        additionalTestPolls[0].category
+        updatedAdditionalPolls[0].category
       );
-      expect(response.body[0].language).toBe('English');
+      expect(response.body[0].language).toEqual(updatedAdditionalPolls[0].language);
     });
 
-    // test("Layer 2: should return polls matching user's preferred categories and language", async () => {
-    //   // Set user preferences
-    //   await User.findByIdAndUpdate(user._id, {
-    //     categories: ['Technology', 'Science'],
-    //     language: 'English',
-    //   });
+    test("Layer 2: should return polls matching user's preferred categories and language", async () => {
+      // Set user preferences
+      Object.assign(user, {categories: [categoryMap.get('Politics')]})
+      await user.save();
+      
+      const res = await request(app)
+      .post('/api/v1/poll')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(reqCreatePollForQMSLayer2)
+      .expect(httpStatus.CREATED);
 
-    //   // Populate QMS with some test polls
-    //   await QMS.insertMany([
-    //     { ...reqCreatePollForQMS, category: 'Technology', language: 'English' },
-    //     { ...reqCreatePollForQMS, category: 'Science', language: 'English' },
-    //     { ...reqCreatePollForQMS, category: 'Sports', language: 'English' },
-    //   ]);
+      expect(res.body).toHaveLength(6);
+      expect(user?.categories[0].toString()).toEqual(res.body[0].category.toString());
+      expect(user?.language).toEqual(res.body[0].language);
+    });
 
-    //   const res = await request(app)
-    //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${access}`)
-    //     .send({ ...reqCreatePollForQMS, category: '', language: 'English' })
-    //     .expect(httpStatus.CREATED);
+    test('Layer 3: should return polls matching the language of the posted poll', async () => {
+      // Set a non-existing category to skip layer 2 results
+      Object.assign(user, {categories: ['66b494e38ca16b2917fa431e']})
+      await user.save();
+      
+      const res = await request(app)
+        .post('/api/v1/poll')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqCreatePollForQMSLayer3)
+        .expect(httpStatus.CREATED);
 
-    //   expect(res.body).toHaveLength(2);
-    //   expect(['Technology', 'Science']).toContain(res.body[0].category);
-    //   expect(res.body[0].language).toBe('English');
-    // });
-
-    // test('Layer 3: should return polls matching the language of the posted poll', async () => {
-    //   // Populate QMS with some test polls
-    //   await QMS.insertMany([
-    //     { ...reqCreatePollForQMS, category: 'Technology', language: 'Spanish' },
-    //     { ...reqCreatePollForQMS, category: 'Science', language: 'Spanish' },
-    //     { ...reqCreatePollForQMS, category: 'Sports', language: 'English' },
-    //   ]);
-
-    //   const res = await request(app)
-    //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${access}`)
-    //     .send({
-    //       ...reqCreatePollForQMS,
-    //       category: 'Politics',
-    //       language: 'Spanish',
-    //     })
-    //     .expect(httpStatus.CREATED);
-
-    //   expect(res.body.length).toBeGreaterThanOrEqual(2);
-    //   expect(res.body[0].language).toBe('Spanish');
-    // });
+      expect(res.body).toHaveLength(7);
+      expect(res.body[0].language).toBe('english');
+    });
 
     // test('Layer 4a: should return polls with same category but different language', async () => {
-    //   // Populate QMS with some test polls
-    //   await QMS.insertMany([
-    //     { ...reqCreatePollForQMS, category: 'Technology', language: 'Spanish' },
-    //     { ...reqCreatePollForQMS, category: 'Technology', language: 'French' },
-    //     { ...reqCreatePollForQMS, category: 'Sports', language: 'English' },
-    //   ]);
-
     //   const res = await request(app)
     //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${access}`)
-    //     .send({
-    //       ...reqCreatePollForQMS,
-    //       category: 'Technology',
-    //       language: 'English',
-    //     })
+    //     .set('Authorization', `Bearer ${accessToken}`)
+    //     .send()
     //     .expect(httpStatus.CREATED);
 
-    //   expect(res.body.length).toBeGreaterThanOrEqual(2);
+    //   expect(res.body).toHaveLength(8);
     //   expect(res.body[0].category).toBe('Technology');
     //   expect(res.body[0].language).toBe('English'); // Assuming translation happened
     // });
