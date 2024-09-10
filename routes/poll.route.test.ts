@@ -7,11 +7,13 @@ import {
   reqUpdatePollActionTypeVoted,
   reqUpdatePollActionTypeCommented,
   reqUpdatePollActionTypeLiked,
+  reqSearchPoll,
 } from './poll.test.data';
 import { reqNewUserPoll, reqLoginUserPoll } from './auth.test.data';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import User, { IUserDoc } from '../mongodb/models/user';
+import QMS from '../mongodb/models/qms';
 
 let accessToken = '';
 let user: IUserDoc | null = null;
@@ -157,6 +159,17 @@ describe('Create, Update, Read and Delete Polls', () => {
       expect(response.body._id).toEqual(pollId);
     });
 
+    test('should return a poll that matches the search query', async () => {
+      const searchQuery = "Who's the best written character in Demon Slayer?"
+      await QMS.create(reqSearchPoll);
+
+      const response = await request(app).get(`/api/v1/poll/search/${searchQuery}`).set('Authorization', `Bearer ${accessToken}`)
+      
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('application/json; charset=utf-8')
+      expect(response.body[0].question).toEqual(searchQuery)
+    })
+
     test('should return a not found request status and error message', async () => {
       const response = await request(app)
         .get(`/api/v1/poll/666161869d833b40c6a14111`)
@@ -274,7 +287,6 @@ describe('Create, Update, Read and Delete Polls', () => {
       const response = await request(app)
         .delete(`/api/v1/poll/666161869d833b40c6a14051`)
         .set('Authorization', `Bearer ${accessToken}`);
-      console.log(response.body);
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'

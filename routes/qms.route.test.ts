@@ -6,6 +6,8 @@ import {
   reqCreatePollForQMSLayer2,
   additionalTestPolls,
   reqCreatePollForQMSLayer3,
+  reqCreatePollForQMSLayer4a,
+  reqCreatePollForQMSLayer4b,
 } from './poll.test.data';
 import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
@@ -17,6 +19,7 @@ let user;
 let accessToken: string;
 let categoriesData: Record<string, any>[] = [];
 let categoryMap: Map<string, string>;
+let reverseCategoryMap: Map<string, string>;
 let updatedAdditionalPolls: any[] = [];
 
 jest.setTimeout(100000);
@@ -54,7 +57,10 @@ describe('QMS integration tests', () => {
     );
     // Map categories to their IDs
     categoryMap = new Map(categoriesData.map((cat) => [cat.name, cat._id]));
-    
+
+    // Create a reverse categoryMap (ID to name)
+    reverseCategoryMap = new Map(categoriesData.map((cat) => [cat._id.toString(), cat.name]));
+
     // Update additionalTestPolls with category IDs
     updatedAdditionalPolls = additionalTestPolls.map((poll) => ({
         ...poll,
@@ -83,9 +89,9 @@ describe('QMS integration tests', () => {
         .send(reqCreatePollForQMSLayer1)
         .expect(httpStatus.CREATED);
 
-      expect(response.body).toHaveLength(5);
-      expect(response.body[0].category).toEqual(
-        updatedAdditionalPolls[0].category
+      expect(response.body).toHaveLength(4);
+      expect(reverseCategoryMap.get(response.body[0].category.toString())).toEqual(
+        'Science and Technology'
       );
       expect(response.body[0].language).toEqual(updatedAdditionalPolls[0].language);
     });
@@ -101,7 +107,7 @@ describe('QMS integration tests', () => {
       .send(reqCreatePollForQMSLayer2)
       .expect(httpStatus.CREATED);
 
-      expect(res.body).toHaveLength(6);
+      expect(res.body).toHaveLength(5);
       expect(user?.categories[0].toString()).toEqual(res.body[0].category.toString());
       expect(user?.language).toEqual(res.body[0].language);
     });
@@ -117,53 +123,39 @@ describe('QMS integration tests', () => {
         .send(reqCreatePollForQMSLayer3)
         .expect(httpStatus.CREATED);
 
-      expect(res.body).toHaveLength(7);
+      expect(res.body).toHaveLength(6);
       expect(res.body[0].language).toBe('english');
     });
 
-    // test('Layer 4a: should return polls with same category but different language', async () => {
-    //   const res = await request(app)
-    //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .send()
-    //     .expect(httpStatus.CREATED);
+    test('Layer 4a: should return polls with same category but different language', async () => {
+      // Set a non-existing category to skip layer 2 results
+      Object.assign(user, {categories: ['66b494e38ca16b2917fa431e']})
+      await user.save();
 
-    //   expect(res.body).toHaveLength(8);
-    //   expect(res.body[0].category).toBe('Technology');
-    //   expect(res.body[0].language).toBe('English'); // Assuming translation happened
-    // });
+      const res = await request(app)
+        .post('/api/v1/poll')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(reqCreatePollForQMSLayer4a)
+        .expect(httpStatus.CREATED);
 
-    // test("Layer 4b: should return random polls when other layers don't provide enough", async () => {
-    //   // Populate QMS with some test polls
-    //   await QMS.insertMany(additionalTestPolls);
+      expect(res.body).toHaveLength(7);
+      expect(reverseCategoryMap.get(res.body[0].category.toString())).toEqual('Media and Entertainment');
+      expect(res.body[0].language).not.toBe('Spanish');
+    });
 
-    //   const res = await request(app)
-    //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${access}`)
-    //     .send({
-    //       ...reqCreatePollForQMS,
-    //       category: 'UnknownCategory',
-    //       language: 'UnknownLanguage',
-    //     })
-    //     .expect(httpStatus.CREATED);
+    test('should return 400 if request body is empty', async () => {
+      await request(app)
+        .post('/api/v1/poll')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({})
+        .expect(httpStatus.BAD_REQUEST);
+    });
 
-    //   expect(res.body.length).toBeLessThanOrEqual(10);
-    //   expect(res.body.length).toBeGreaterThan(0);
-    // });
-
-    // test('should return 400 if request body is empty', async () => {
-    //   await request(app)
-    //     .post('/v1/polls')
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .send({})
-    //     .expect(httpStatus.BAD_REQUEST);
-    // });
-
-    // test('should return 401 if accessToken is missing', async () => {
-    //   await request(app)
-    //     .post('/v1/polls')
-    //     .send(reqCreatePollForQMS)
-    //     .expect(httpStatus.UNAUTHORIZED);
-    // });
+    test('should return 401 if accessToken is missing', async () => {
+      await request(app)
+        .post('/api/v1/poll')
+        .send(reqCreatePollForQMSLayer1)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
   });
 });

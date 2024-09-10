@@ -28,6 +28,13 @@ const reqCreatePollHarmful = {
   },
 };
 
+const reqSearchPoll = {
+  ...reqCreatePoll,
+  question: "Who's the best written character in Demon Slayer?",
+  answers: ['Tanjiro', 'Tengen', 'Nezuko', 'Inosuke'],
+  owner: '66b494e38ca16b2917fa431e',
+}
+
 const reqUpdatePoll = {
   question: "Who's the best candidate for the 2027 elections?",
   answers: ['Donald Trump', 'Joe Biden', 'Kamala Harris', 'Ron DeSantis'],
@@ -93,6 +100,18 @@ const reqCreatePollForQMSLayer3 = {
   answers: ['Elon Musk', 'Jeff Bezos', 'Bill Gates', 'Warren Buffett'],
 };
 
+const reqCreatePollForQMSLayer4a = {
+  ...reqCreatePollForQMSLayer1,
+  question: '¿Quién tiene el mejor álbum de música de todos los tiempos?',
+  answers: ['Michael Jackson', 'Elvis Presley', 'Drake', 'Kendrick Lamar'],
+}
+
+const reqCreatePollForQMSLayer4b = {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What is your favorite cuisine?',
+    answers: ['Italian', 'Chinese', 'Mexican', 'Indian'],
+  }
+
 // Add more test polls with different categories, languages, and locations
 const additionalTestPolls = [
   {
@@ -107,13 +126,6 @@ const additionalTestPolls = [
     question: 'Who was the best president of the United States?',
     answers: ['Donald Trump', 'Joe Biden', 'Barack Obama', 'George W. Bush'],
     category: 'Politics',
-    language: 'English',
-  },
-  {
-    ...reqCreatePollForQMSLayer1,
-    question: 'What is your favorite cuisine?',
-    answers: ['Italian', 'Chinese', 'Mexican', 'Indian'],
-    category: 'Health and Food',
     language: 'English',
   },
   {
@@ -135,6 +147,7 @@ const additionalTestPolls = [
 
 export {
   reqCreatePoll,
+  reqSearchPoll,
   reqUpdatePoll,
   reqCreatePollHarmful,
   reqUpdatePollActionTypeVoted,
@@ -143,5 +156,7 @@ export {
   reqCreatePollForQMSLayer1,
   reqCreatePollForQMSLayer2,
   reqCreatePollForQMSLayer3,
+  reqCreatePollForQMSLayer4a,
+  reqCreatePollForQMSLayer4b,
   additionalTestPolls,
 };
