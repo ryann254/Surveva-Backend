@@ -93,6 +93,18 @@ const reqCreatePollForQMSLayer3 = {
   answers: ['Elon Musk', 'Jeff Bezos', 'Bill Gates', 'Warren Buffett'],
 };
 
+const reqCreatePollForQMSLayer4a = {
+  ...reqCreatePollForQMSLayer1,
+  question: '¿Quién tiene el mejor álbum de música de todos los tiempos?',
+  answers: ['Michael Jackson', 'Elvis Presley', 'Drake', 'Kendrick Lamar'],
+}
+
+const reqCreatePollForQMSLayer4b = {
+    ...reqCreatePollForQMSLayer1,
+    question: 'What is your favorite cuisine?',
+    answers: ['Italian', 'Chinese', 'Mexican', 'Indian'],
+  }
+
 // Add more test polls with different categories, languages, and locations
 const additionalTestPolls = [
   {
@@ -107,13 +119,6 @@ const additionalTestPolls = [
     question: 'Who was the best president of the United States?',
     answers: ['Donald Trump', 'Joe Biden', 'Barack Obama', 'George W. Bush'],
     category: 'Politics',
-    language: 'English',
-  },
-  {
-    ...reqCreatePollForQMSLayer1,
-    question: 'What is your favorite cuisine?',
-    answers: ['Italian', 'Chinese', 'Mexican', 'Indian'],
-    category: 'Health and Food',
     language: 'English',
   },
   {
@@ -143,5 +148,7 @@ export {
   reqCreatePollForQMSLayer1,
   reqCreatePollForQMSLayer2,
   reqCreatePollForQMSLayer3,
+  reqCreatePollForQMSLayer4a,
+  reqCreatePollForQMSLayer4b,
   additionalTestPolls,
 };
