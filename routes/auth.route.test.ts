@@ -144,7 +144,6 @@ describe('Authentication Routes', () => {
           refreshToken:
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmNmMjJmMTVlZTA3MmZmZmYyYTQyNjQiLCJpYXQiOjE3MjUzNTA5NjIsImV4cCI6MTcyNTM1ODE2MiwidHlwZSI6ImFjY2VzcyJ9.YsiPHvIj37BG1qppq-4uCkaFSM2ceX93-hOUQDpkUB8',
         });
-        console.log(response.body, response.status)
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'

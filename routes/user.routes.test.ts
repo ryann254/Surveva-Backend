@@ -7,8 +7,8 @@ import { config } from '../config';
 import User from '../mongodb/models/user';
 
 let accessToken = '';
-let refreshToken = '';
 let userId = '';
+let user;
 // Simulate trying to update another user's profile.
 let differentUserId = '';
 
@@ -17,22 +17,28 @@ jest.setTimeout(100000);
 describe('Create, Update, Read and Delete Users', () => {
   beforeAll(async () => {
     await mongoose.connect(config.mongoDBUriTestDB);
+  });
 
+  beforeEach(async () => {
     // Create a new user then login using their credentials.
-    const user = await User.create(reqNewUser2);
+    user = await User.create(reqNewUser2);
     userId = user._id as string;
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
       .send(reqLoginUser2);
     accessToken = loginResponse.body.tokens.access.token;
-    refreshToken = loginResponse.body.tokens.refresh.token;
+  });
+
+  afterEach(async () => {
+    // Delete the user after each test
+    if (user) {
+      await request(app).delete(`/api/v1/user/${user._id}`).set('Authorization', `Bearer ${accessToken}`)
+    }
+    user = null;
+    accessToken = '';
   });
 
   afterAll(async () => {
-    // Log out and delete the user created in the beforeAll
-    await request(app).post('/api/v1/auth/logout').send({
-      refreshToken,
-    });
     // Delete all the data in collections
     await Promise.all(
       Object.values(mongoose.connection.collections).map(async (collection) =>
@@ -73,7 +79,7 @@ describe('Create, Update, Read and Delete Users', () => {
       const response = await request(app)
         .post('/api/v1/user')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({});
+        .send({email: 'test@test.com'});
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
