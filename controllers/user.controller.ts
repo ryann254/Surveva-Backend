@@ -15,26 +15,21 @@ import {
 import User, { UserObject } from '../mongodb/models/user';
 import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
-import { reqCreateUser } from '../routes/user.test.data';
-import { throwZodError } from '../services/error.service';
+import { catchZodError } from '../utils/catchZodError';
 
 export const createUserController = catchAsync(
   async (req: Request, res: Response) => {
     if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
 
-    try {
-      const parsedUser = UserObject.parse(req.body);
-      const user = await createUser(parsedUser);
-      // Send `user_created` analytic to Amplitude
-      if (user) {
-        sendAmplitudeAnalytics('user_created');
-      }
-
-      return res.status(httpStatus.CREATED).json(user);
-    } catch (error) {
-      throwZodError(error.message, res);
+    const parsedUser = catchZodError(() => UserObject.parse(req.body), res);
+    const user = await createUser(parsedUser);
+    // Send `user_created` analytic to Amplitude
+    if (user) {
+      sendAmplitudeAnalytics('user_created');
     }
+
+    return res.status(httpStatus.CREATED).json(user);
   }
 );
 
@@ -45,20 +40,16 @@ export const updateUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    try {
-      const accountBelongsToUser = await verifyAccountOwnership(req);
+    const accountBelongsToUser = await verifyAccountOwnership(req);
 
-      if (accountBelongsToUser) {
-        const parsedUser = UserObject.partial().parse(req.body);
-        const user = await updateUser(req.params.userId, parsedUser);
-        return res.status(httpStatus.OK).json(user);
-      }
-      return res.status(httpStatus.FORBIDDEN).json({
-        message: "You're Not allowed to perform this action",
-      });
-    } catch (error) {
-      throwZodError(error.message, res);
+    if (accountBelongsToUser) {
+      const parsedUser = catchZodError(() => UserObject.partial().parse(req.body), res);
+      const user = await updateUser(req.params.userId, parsedUser);
+      return res.status(httpStatus.OK).json(user);
     }
+    return res.status(httpStatus.FORBIDDEN).json({
+      message: "You're Not allowed to perform this action",
+    });
   }
 );
 
@@ -77,7 +68,6 @@ export const deleteUserController = catchAsync(
     if (!req.params.userId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'User ID is required');
 
-    try {
       const accountBelongsToUser = await verifyAccountOwnership(req);
       if (accountBelongsToUser) {
         // Delete all polls associated with the user.
@@ -92,8 +82,5 @@ export const deleteUserController = catchAsync(
       return res
         .status(httpStatus.FORBIDDEN)
         .json({ message: "You're Not allowed to perform this action" });
-    } catch (error) {
-      throwZodError(error.message, res);
-    }
   }
 );

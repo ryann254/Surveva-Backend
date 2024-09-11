@@ -25,15 +25,15 @@ import { getUserById } from '../services/user.service';
 import { IUserDoc } from '../mongodb/models/user';
 import { discoverySectionAlgorithm } from '../services/dsa.service';
 import pick from '../utils/pick';
-import { throwZodError } from '../services/error.service';
+import { catchZodError } from '../utils/catchZodError';
 
 export const createPollController = catchAsync(
   async (req: Request, res: Response) => {
     if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
-
-    try {
-      const parsedPoll = QMSObject.parse(req.body);
+      
+      const parsedPoll = catchZodError(() => QMSObject.parse(req.body), res);
+      // const parsedPoll = QMSObject.parse(req.body);
       // Check for moderation using the open ai api
       const contentIsHarmful = await checkForModeration(parsedPoll.question);
 
@@ -62,9 +62,6 @@ export const createPollController = catchAsync(
         message:
           'The content you have posted is potentially harmful. Edit it and try again',
       });
-    } catch (error) {
-      throwZodError(error.message, res);
-    }
   }
 );
 
@@ -85,52 +82,48 @@ export const updatePollController = catchAsync(
     if (!req.params.pollId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Poll ID is required');
 
-    try {
-      const parsedPoll = QMSObject.parse(req.body);
+    const parsedPoll = catchZodError(() => QMSObject.parse(req.body), res);
 
-      // Update a poll's `popularityCount` when a user clicks, votes, likes or comments on it.
-      if (req.query.actionType) {
-        const user = await getUserById(req.user._id);
-        const result = await updatePopularityCount(
-          req.params.pollId,
-          req.query.actionType,
-          req.body,
-          user
-        );
+    // Update a poll's `popularityCount` when a user clicks, votes, likes or comments on it.
+    if (req.query.actionType) {
+      const user = await getUserById(req.user._id);
+      const result = await updatePopularityCount(
+        req.params.pollId,
+        req.query.actionType,
+        req.body,
+        user
+      );
+      // Check if poll has reached the required number of responses.
+      // If yes, then move the poll to the Served Poll collection
+      await checkForNumberOfResponses(result.poll, req.params.pollId);
+
+      return res.status(httpStatus.OK).json(result);
+    }
+
+    // Skip the AI calls if a user is clicking, voting, liking or commenting on a poll.
+    if (!req.query.actionType) {
+      // Check for moderation using the open ai api
+      const contentIsHarmful = await checkForModeration(parsedPoll.question);
+
+      if (!contentIsHarmful) {
+        // Check for category and language from the open ai api
+        const updatedPoll =
+          config.useOpenAi === 'true'
+            ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
+            : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
+
+        const poll = await updatePoll(req.params.pollId, updatedPoll);
+
         // Check if poll has reached the required number of responses.
         // If yes, then move the poll to the Served Poll collection
-        await checkForNumberOfResponses(result.poll, req.params.pollId);
+        await checkForNumberOfResponses(poll, req.params.pollId);
 
-        return res.status(httpStatus.OK).json(result);
+        return res.status(httpStatus.OK).json(poll);
       }
-
-      // Skip the AI calls if a user is clicking, voting, liking or commenting on a poll.
-      if (!req.query.actionType) {
-        // Check for moderation using the open ai api
-        const contentIsHarmful = await checkForModeration(parsedPoll.question);
-
-        if (!contentIsHarmful) {
-          // Check for category and language from the open ai api
-          const updatedPoll =
-            config.useOpenAi === 'true'
-              ? await checkForCategoryAndLanguageOpenAI(parsedPoll)
-              : await checkForCategoryAndLanguageGeminiFlash(parsedPoll);
-
-          const poll = await updatePoll(req.params.pollId, updatedPoll);
-
-          // Check if poll has reached the required number of responses.
-          // If yes, then move the poll to the Served Poll collection
-          await checkForNumberOfResponses(poll, req.params.pollId);
-
-          return res.status(httpStatus.OK).json(poll);
-        }
-        return res.status(httpStatus.BAD_REQUEST).json({
-          message:
-            'The content you have posted is potentially harmful. Edit it and try again',
-        });
-      }
-    } catch (error) {
-      throwZodError(error.message, res);
+      return res.status(httpStatus.BAD_REQUEST).json({
+        message:
+          'The content you have posted is potentially harmful. Edit it and try again',
+      });
     }
   }
 );

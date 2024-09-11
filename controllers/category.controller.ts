@@ -9,20 +9,17 @@ import {
 } from '../services/category.service';
 import catchAsync from '../utils/catchAsync';
 import { ApiError } from '../errors';
-import { throwZodError } from '../services/error.service';
+import { catchZodError } from '../utils/catchZodError';
 
 export const createCategoryController = catchAsync(
   async (req: Request, res: Response) => {
     if (!Object.keys(req.body).length)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
-    try {
-      const parsedCategory = CategoryObject.parse(req.body);
-      const category = await createCategory(parsedCategory);
+    
+    const parsedCategory = catchZodError(() => CategoryObject.parse(req.body), res);
+    const category = await createCategory(parsedCategory);
 
-      return res.status(httpStatus.CREATED).json(category);
-    } catch (error) {
-      throwZodError(error.message, res);
-    }
+    return res.status(httpStatus.CREATED).json(category);
   }
 );
 
@@ -40,17 +37,13 @@ export const updateCategoryController = catchAsync(
     if (!req.params.categoryId)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Category ID is required');
 
-    try {
-      const parsedCategory = CategoryObject.parse(req.body);
-      const category = await updateCategory(
-        req.params.categoryId,
-        parsedCategory
-      );
+    const parsedCategory = catchZodError(() => CategoryObject.parse(req.body), res);
+    const category = await updateCategory(
+      req.params.categoryId,
+      parsedCategory
+    );
 
-      return res.status(httpStatus.OK).json(category);
-    } catch (error) {
-      throwZodError(error.message, res);
-    }
+    return res.status(httpStatus.OK).json(category);
   }
 );
 
