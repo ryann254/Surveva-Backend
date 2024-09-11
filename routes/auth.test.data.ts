@@ -58,8 +58,16 @@ const reqNewUserPoll = {
   categories: ['669616cc6ce23313d6b36715'],
 };
 
+const reqLoginUserQMS = {
+  email: 'franky@strawhats.com',
+  password: 'franky1234@24',
+};
+
 const reqNewUserQMS = {
   ...reqNewUserPoll,
+  username: 'Franky',
+  password: 'franky1234@24',
+  email: 'franky@strawhats.com',
   location: {
     country: 'United States',
     continent: 'North America',
@@ -67,9 +75,28 @@ const reqNewUserQMS = {
   language: 'English',
 };
 
-const reqNewUserQMS2 = {
+const reqLoginUserDSA = {
+  email: 'brook@strawhats.com',
+  password: 'brook1234@24',
+};
+
+const reqNewUserDSA = {
+  ...reqNewUserPoll,
+  email: 'brook@strawhats.com',
+  password: 'brook1234@24',
+  username: 'Brook',
+  location: {
+    country: 'United States',
+    continent: 'North America',
+  },
+  language: 'English',
+};
+
+const reqNewUserDSA2 = {
   ...reqNewUserPoll,
   email: 'yamato@strawhats.com',
+  password: 'yamato1234@24',
+  username: 'Yamato',
   location: {
     country: 'Kenya',
     continent: 'Africa',
@@ -84,6 +111,9 @@ export {
   reqLoginUserCategory,
   reqNewUserPoll,
   reqNewUserQMS,
-  reqNewUserQMS2,
   reqLoginUserPoll,
+  reqLoginUserQMS,
+  reqNewUserDSA,
+  reqLoginUserDSA,
+  reqNewUserDSA2
 };

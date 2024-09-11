@@ -9,7 +9,7 @@ import ServedPoll from '../mongodb/models/served_poll';
 import User from '../mongodb/models/user';
 import mongoose from 'mongoose';
 import { config } from '../config';
-import { reqNewUserQMS, reqLoginUserPoll, reqNewUserQMS2 } from './auth.test.data';
+import { reqNewUserDSA, reqNewUserDSA2, reqLoginUserDSA,  } from './auth.test.data';
 import { DSALayers } from '../config';
 
 let user;
@@ -26,11 +26,11 @@ describe('DSA integration tests', () => {
     await mongoose.connect(config.mongoDBUriTestDB);
 
     // Create a new user then login using their credentials.
-    user = await User.create(reqNewUserQMS);
-    user2 = await User.create(reqNewUserQMS2);
+    user = await User.create(reqNewUserDSA);
+    user2 = await User.create(reqNewUserDSA2);
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
-      .send(reqLoginUserPoll);
+      .send(reqLoginUserDSA);
     accessToken = loginResponse.body.tokens.access.token;
 
     // Create categories

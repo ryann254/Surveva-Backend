@@ -13,7 +13,7 @@ import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
 import mongoose from 'mongoose';
 import { config } from '../config';
-import { reqNewUserQMS, reqLoginUserPoll } from './auth.test.data';
+import { reqNewUserQMS, reqLoginUserQMS } from './auth.test.data';
 
 let user;
 let accessToken: string;
@@ -32,7 +32,7 @@ describe('QMS integration tests', () => {
     user = await User.create(reqNewUserQMS);
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
-      .send(reqLoginUserPoll);
+      .send(reqLoginUserQMS);
     accessToken = loginResponse.body.tokens.access.token;
 
     // Create categories
