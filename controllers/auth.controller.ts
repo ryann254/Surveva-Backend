@@ -74,7 +74,7 @@ export const refreshTokensController = catchAsync(
     if (!req.body.refreshToken)
       throw new ApiError(httpStatus.BAD_REQUEST, 'Refresh token is required');
     
-    const userWithTokens = catchZodError(() => refreshAuthTokens(req.body.refreshToken), res);
+    const userWithTokens = await refreshAuthTokens(req.body.refreshToken);
     return res.status(httpStatus.OK).json(userWithTokens);
   }
 );

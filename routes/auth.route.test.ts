@@ -119,18 +119,16 @@ describe('Authentication Routes', () => {
   });
 
   describe('POST /api/v1/auth/refresh-tokens', () => {
-    beforeEach(async () => {
+    test('should refresh tokens', async () => {
       const loginResponse = await request(app)
         .post('/api/v1/auth/login')
         .send(reqLoginUser);
       refreshToken = loginResponse.body.tokens.refresh.token;
-    });
-
-    test('should refresh tokens', async () => {
+      
       const response = await request(app)
-        .post('/api/v1/auth/refresh-tokens')
-        .send({ refreshToken });
-
+      .post('/api/v1/auth/refresh-tokens')
+      .send({ refreshToken });
+      
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
@@ -146,11 +144,12 @@ describe('Authentication Routes', () => {
           refreshToken:
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2NmNmMjJmMTVlZTA3MmZmZmYyYTQyNjQiLCJpYXQiOjE3MjUzNTA5NjIsImV4cCI6MTcyNTM1ODE2MiwidHlwZSI6ImFjY2VzcyJ9.YsiPHvIj37BG1qppq-4uCkaFSM2ceX93-hOUQDpkUB8',
         });
+        console.log(response.body, response.status)
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body.message).toMatch(/jwt expired/i);
     });
 
@@ -165,7 +164,7 @@ describe('Authentication Routes', () => {
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       expect(response.body.message).toMatch(/invalid signature/i);
     });
   });
@@ -178,7 +177,6 @@ describe('Authentication Routes', () => {
       const response = await request(app)
         .post('/api/v1/auth/forgot-password')
         .send({ email: reqNewUser.email });
-      console.log(response.status, response.body);
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );

@@ -141,12 +141,9 @@ describe('Create, Update, Read and Delete Polls', () => {
 
   describe('GET /api/v1/poll', () => {
     test('should return all polls', async () => {
-    const getPoll = await QMS.find({}).populate('owner')
-    console.log(getPoll)
       const response = await request(app)
         .get(`/api/v1/poll?page=1&categoryIndex=0&dsaLayer=layer 1`)
         .set('Authorization', `Bearer ${accessToken}`);
-      // console.log(response.body, response.status)
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
