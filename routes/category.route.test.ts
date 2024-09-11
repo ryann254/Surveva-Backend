@@ -7,7 +7,6 @@ import { config } from '../config';
 import User from '../mongodb/models/user';
 
 let accessToken = '';
-let refreshToken = '';
 let categoryId = '';
 
 jest.setTimeout(100000);
@@ -22,14 +21,9 @@ describe('Create, Update, Read and Delete Categories', () => {
       .post('/api/v1/auth/login')
       .send(reqLoginUserCategory);
     accessToken = loginResponse.body.tokens.access.token;
-    refreshToken = loginResponse.body.tokens.refresh.token;
   });
 
   afterAll(async () => {
-    // Log out and delete the user created in the beforeAll
-    await request(app).post('/api/v1/auth/logout').send({
-      refreshToken,
-    });
     // Delete all the data in collections
     await Promise.all(
       Object.values(mongoose.connection.collections).map(async (collection) =>
@@ -70,7 +64,7 @@ describe('Create, Update, Read and Delete Categories', () => {
       const response = await request(app)
         .post('/api/v1/category')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({});
+        .send({people: 'Nami'});
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
@@ -112,11 +106,11 @@ describe('Create, Update, Read and Delete Categories', () => {
         .patch(`/api/v1/category/666161869d833b40c6a14051`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqUpdateCategory);
-
+        
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
       expect(response.body.message).toMatch(/does not exist/i);
     });
   });

@@ -18,6 +18,18 @@ const reqNewUser = {
   categories: ['669616cc6ce23313d6b36715', '66a379a157a7b9e228fbc9d5'],
 };
 
+const reqLoginUser2 = {
+  email: 'momonusuke@strawhats.com',
+  password: 'momonusuke123!',
+};
+
+const reqNewUser2 = {
+  ...reqNewUser,
+  username: 'Momonusuke',
+  password: 'momonusuke123!',
+  email: 'momonusuke@strawhats.com'
+}
+
 const reqLoginUserCategory = {
   email: 'nami@strawhats.com',
   password: 'nami1234@24',
@@ -106,7 +118,9 @@ const reqNewUserDSA2 = {
 
 export {
   reqLoginUser,
+  reqLoginUser2,
   reqNewUser,
+  reqNewUser2,
   reqNewUserCategory,
   reqLoginUserCategory,
   reqNewUserPoll,

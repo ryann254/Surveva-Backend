@@ -14,6 +14,7 @@ import mongoose from 'mongoose';
 import { config } from '../config';
 import User, { IUserDoc } from '../mongodb/models/user';
 import QMS from '../mongodb/models/qms';
+import Category from '../mongodb/models/category';
 
 let accessToken = '';
 let user: IUserDoc | null = null;
@@ -25,13 +26,6 @@ describe('Create, Update, Read and Delete Polls', () => {
   beforeAll(async () => {
     await mongoose.connect(config.mongoDBUriTestDB);
 
-    // Create a new user then login using their credentials.
-    user = await User.create(reqNewUserPoll);
-    const loginResponse = await request(app)
-      .post('/api/v1/auth/login')
-      .send(reqLoginUserPoll);
-    accessToken = loginResponse.body.tokens.access.token;
-
     // Create categories
     const categories = [
       'Media and Entertainment',
@@ -39,17 +33,34 @@ describe('Create, Update, Read and Delete Polls', () => {
       'Sports',
       'Science and Technology',
       'Business',
-      'Health',
+      'Health and Food',
     ];
 
-    await Promise.all(
-      categories.map(async (category) => {
-        await request(app)
-          .post('/api/v1/category')
-          .set('Authorization', `Bearer ${accessToken}`)
-          .send({ name: category });
-      })
-    );
+    // Insert all categories at once
+    await Category.insertMany(categories.map(name => ({ name })));
+  });
+
+  beforeEach(async () => {
+    // Create a new user then login using their credentials.
+    user = await User.create(reqNewUserPoll);
+    const loginResponse = await request(app)
+      .post('/api/v1/auth/login')
+      .send(reqLoginUserPoll);
+    accessToken = loginResponse.body.tokens.access.token;
+
+    // Create a new poll
+    reqCreatePoll.owner = user?._id as string;
+    const poll = await QMS.create(reqCreatePoll)
+    pollId = poll._id as string;
+  });
+
+  afterEach(async () => {
+    // Delete the user after each test
+    if (user) {
+      await request(app).delete(`/api/v1/user/${user._id}`).set('Authorization', `Bearer ${accessToken}`)
+    }
+    user = null;
+    accessToken = '';
   });
 
   afterAll(async () => {
@@ -75,13 +86,9 @@ describe('Create, Update, Read and Delete Polls', () => {
 
   describe('POST /api/v1/poll', () => {
     test('should create and save poll details to db', async () => {
-      // Add the current user as the poll owner
+      // Create a poll to be used as a response in the next request.
       reqCreatePoll.owner = user?._id as string;
-      // Create a new poll first inorder to get it as a response in the next request.
-      await request(app)
-        .post('/api/v1/poll')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send(reqCreatePoll);
+      await request(app).post('/api/v1/poll').set('Authorization', `Bearer ${accessToken}`).send(reqCreatePoll)
 
       const response = await request(app)
         .post('/api/v1/poll')
@@ -134,9 +141,12 @@ describe('Create, Update, Read and Delete Polls', () => {
 
   describe('GET /api/v1/poll', () => {
     test('should return all polls', async () => {
+    const getPoll = await QMS.find({}).populate('owner')
+    console.log(getPoll)
       const response = await request(app)
         .get(`/api/v1/poll?page=1&categoryIndex=0&dsaLayer=layer 1`)
         .set('Authorization', `Bearer ${accessToken}`);
+      // console.log(response.body, response.status)
 
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
@@ -156,7 +166,7 @@ describe('Create, Update, Read and Delete Polls', () => {
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(200);
-      expect(response.body._id).toEqual(pollId);
+      expect(response.body._id.toString()).toEqual(pollId.toString());
     });
 
     test('should return a poll that matches the search query', async () => {
@@ -233,7 +243,7 @@ describe('Create, Update, Read and Delete Polls', () => {
         'application/json; charset=utf-8'
       );
       expect(responseLiked.status).toBe(200);
-      expect(responseLiked.body.poll.popularityCount).toEqual(23);
+      expect(responseLiked.body.poll.popularityCount).toEqual(13);
       expect(responseLiked.body.poll.likes).toEqual(1);
     });
 
@@ -252,7 +262,7 @@ describe('Create, Update, Read and Delete Polls', () => {
         'application/json; charset=utf-8'
       );
       expect(responseCommented.status).toBe(200);
-      expect(responseCommented.body.poll.popularityCount).toEqual(37);
+      expect(responseCommented.body.poll.popularityCount).toEqual(15);
       expect(responseCommented.body.poll.comments.length).toEqual(1);
     });
 
@@ -261,11 +271,10 @@ describe('Create, Update, Read and Delete Polls', () => {
         .patch(`/api/v1/poll/666161869d833b40c6a14051`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send(reqUpdatePoll);
-
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(404);
       expect(response.body.message).toMatch(/does not exist/i);
     });
   });

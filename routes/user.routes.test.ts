@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import { reqCreateUser, reqUpdateUser } from './user.test.data';
-import { reqLoginUser, reqNewUser } from './auth.test.data';
+import { reqLoginUser2, reqNewUser2 } from './auth.test.data';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import User from '../mongodb/models/user';
@@ -19,11 +19,11 @@ describe('Create, Update, Read and Delete Users', () => {
     await mongoose.connect(config.mongoDBUriTestDB);
 
     // Create a new user then login using their credentials.
-    const user = await User.create(reqNewUser);
+    const user = await User.create(reqNewUser2);
     userId = user._id as string;
     const loginResponse = await request(app)
       .post('/api/v1/auth/login')
-      .send(reqLoginUser);
+      .send(reqLoginUser2);
     accessToken = loginResponse.body.tokens.access.token;
     refreshToken = loginResponse.body.tokens.refresh.token;
   });
@@ -92,7 +92,7 @@ describe('Create, Update, Read and Delete Users', () => {
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(200);
-      expect(response.body.email).toEqual(reqNewUser.email);
+      expect(response.body.email).toEqual(reqNewUser2.email);
     });
 
     test('should return not found request status and error message', async () => {
@@ -119,7 +119,7 @@ describe('Create, Update, Read and Delete Users', () => {
         'application/json; charset=utf-8'
       );
       expect(response.status).toBe(200);
-      expect(response.body.email).not.toEqual(reqNewUser.email);
+      expect(response.body.email).not.toEqual(reqNewUser2.email);
     });
 
     test('should return a forbidden request status and error message', async () => {
