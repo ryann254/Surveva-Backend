@@ -55,9 +55,10 @@ describe('Create, Update, Read and Delete Polls', () => {
   });
 
   afterEach(async () => {
-    // Delete the user after each test
+    // Delete the user and all QMS documents after each test
     if (user) {
-      await request(app).delete(`/api/v1/user/${user._id}`).set('Authorization', `Bearer ${accessToken}`)
+      await User.findByIdAndDelete(user._id);
+      await QMS.deleteMany({}); // Delete all QMS documents
     }
     user = null;
     accessToken = '';

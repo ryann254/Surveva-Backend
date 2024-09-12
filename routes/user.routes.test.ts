@@ -5,6 +5,7 @@ import { reqLoginUser2, reqNewUser2 } from './auth.test.data';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import User from '../mongodb/models/user';
+import QMS from '../mongodb/models/qms'; // Add this import if not already present
 
 let accessToken = '';
 let userId = '';
@@ -30,9 +31,10 @@ describe('Create, Update, Read and Delete Users', () => {
   });
 
   afterEach(async () => {
-    // Delete the user after each test
+    // Delete the user and all QMS documents after each test
     if (user) {
-      await request(app).delete(`/api/v1/user/${user._id}`).set('Authorization', `Bearer ${accessToken}`)
+      await User.findByIdAndDelete(user._id);
+      await QMS.deleteMany({}); // Delete all QMS documents
     }
     user = null;
     accessToken = '';
@@ -170,6 +172,14 @@ describe('Create, Update, Read and Delete Users', () => {
       );
       expect(response.status).toBe(200);
       expect(response.body.message).toEqual('User deleted successfully');
+
+      // Verify that the user is deleted
+      const deletedUser = await User.findById(userId);
+      expect(deletedUser).toBeNull();
+
+      // Verify that all QMS documents are deleted
+      const qmsCount = await QMS.countDocuments();
+      expect(qmsCount).toBe(0);
     });
   });
 });
