@@ -12,7 +12,7 @@ import {
 import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 import { reqNewUserQMS, reqLoginUserQMS } from './auth.test.data';
 
 let user;
@@ -28,6 +28,26 @@ describe('QMS integration tests', () => {
   beforeAll(async () => {
     const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
     await mongoose.connect(mongoUri);
+
+    // Add retry logic for MongoDB connection
+    const maxRetries = 3;
+    const retryInterval = 2000; // 2 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await mongoose.connect(mongoUri);
+        if (mongoose.connection.readyState === 1) {
+          logger.info('MongoDB connection successful');
+          break;
+        }
+      } catch (error) {
+        console.error(`Attempt ${attempt}: MongoDB connection failed`);
+        if (attempt === maxRetries) {
+          throw new Error('Failed to connect to MongoDB after multiple attempts');
+        }
+        await new Promise(resolve => setTimeout(resolve, retryInterval));
+      }
+    }
 
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserQMS);
@@ -79,7 +99,10 @@ describe('QMS integration tests', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
+    // Close the mongoose connection
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
   });
 
   describe('POST /api/v1/poll (QMS integration)', () => {
