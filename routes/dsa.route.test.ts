@@ -8,7 +8,7 @@ import QMS from '../mongodb/models/qms';
 import ServedPoll from '../mongodb/models/served_poll';
 import User from '../mongodb/models/user';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 import { reqNewUserDSA, reqNewUserDSA2, reqLoginUserDSA,  } from './auth.test.data';
 import { DSALayers } from '../config';
 
@@ -24,7 +24,26 @@ jest.setTimeout(100000);
 describe('DSA integration tests', () => {
   beforeAll(async () => {
     const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
-    await mongoose.connect(mongoUri);
+    
+    // Add retry logic for MongoDB connection
+    const maxRetries = 3;
+    const retryInterval = 2000; // 2 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await mongoose.connect(mongoUri);
+        if (mongoose.connection.readyState === 1) {
+          logger.info('MongoDB connection successful');
+          break;
+        }
+      } catch (error) {
+        console.error(`Attempt ${attempt}: MongoDB connection failed`);
+        if (attempt === maxRetries) {
+          throw new Error('Failed to connect to MongoDB after multiple attempts');
+        }
+        await new Promise(resolve => setTimeout(resolve, retryInterval));
+      }
+    }
 
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserDSA);
@@ -86,7 +105,11 @@ describe('DSA integration tests', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
+    
+    // Close the mongoose connection
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
   });
 
   describe('GET /api/v1/poll (Discovery Section Algorithm)', () => {
@@ -97,6 +120,7 @@ describe('DSA integration tests', () => {
         language: 'English',
       });
       await user.save();
+      console.log(user)
       
       const response = await request(app)
         .get('/api/v1/poll')
