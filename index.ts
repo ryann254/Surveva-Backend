@@ -8,7 +8,7 @@ const PORT = 5000 || process.env.PORT;
 mongoose.set('strictQuery', config.nodeEnv === 'development' ? true : false);
 // Connect to MongoDB and run server.
 mongoose
-  .connect(config.mongoDBUri)
+  .connect(config.nodeEnv === 'development' ? config.mongoDBUri : config.mongoDBUriProd)
   .then(async () => {
     logger.info('Connected to MongoDB');
     // Text index the `question` field in the Polls collection to allow for text searching later on.

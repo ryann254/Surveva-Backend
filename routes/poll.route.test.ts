@@ -24,7 +24,8 @@ jest.setTimeout(100000);
 
 describe('Create, Update, Read and Delete Polls', () => {
   beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
+    const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
+    await mongoose.connect(mongoUri);
 
     // Create categories
     const categories = [

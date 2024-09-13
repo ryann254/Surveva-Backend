@@ -26,7 +26,8 @@ jest.setTimeout(100000);
 
 describe('QMS integration tests', () => {
   beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
+    const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
+    await mongoose.connect(mongoUri);
 
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserQMS);

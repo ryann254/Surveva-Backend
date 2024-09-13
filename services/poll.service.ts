@@ -14,7 +14,6 @@ import { getAllCategories } from './category.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import ServedPoll, { ServedPollObject } from '../mongodb/models/served_poll';
 import { IUserDoc, IUserSchema } from '../mongodb/models/user';
-import { jsonToObject } from '../utils/jsonToObject';
 import Comment from '../mongodb/models/comment';
 
 /**
@@ -226,7 +225,7 @@ export const checkForCategoryAndLanguageGeminiFlash = async (
   const modelResult = await model.generateContent(prompt);
   const response = await modelResult.response;
   logger.info(`Open Ai response: ${response.text()}`);
-  const result = jsonToObject(response.text());
+  const result = JSON.parse(response.text());
 
   // If OpenAI starts to hallucinate(give wrong answers), retry one time.
   if (!result && numberOfRetries < 1) {

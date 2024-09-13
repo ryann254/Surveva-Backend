@@ -9,7 +9,8 @@ jest.setTimeout(100000);
 let refreshToken = '';
 describe('Authentication Routes', () => {
   beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
+    const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
+    await mongoose.connect(mongoUri);
   });
 
   afterAll(async () => {
