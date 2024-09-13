@@ -187,7 +187,7 @@ export const discoverySectionAlgorithm = async (
         categoryIndexInt = index;
       })
     );
-    logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
+    // logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
   }
 
   // LAYER 2:
@@ -274,7 +274,7 @@ export const discoverySectionAlgorithm = async (
     } else {
       dsaPolls = dsaPolls.concat(filteredServedTrendingPolls);
     }
-    logger.info(`Reached DSA LAYER 2 ${dsaPolls}`);
+    // logger.info(`Reached DSA LAYER 2 ${dsaPolls}`);
   }
 
   return { docs: dsaPolls, categoryIndexInt };
