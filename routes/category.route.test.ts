@@ -21,6 +21,15 @@ describe('Create, Update, Read and Delete Categories', () => {
     accessToken = loginResponse.body.tokens.access.token;
   });
 
+  afterAll(async () => {
+    // Delete all the data in collections
+    await Promise.all(
+      Object.values(mongoose.connection.collections).map(async (collection) =>
+        collection.deleteMany({})
+      )
+    );
+  });
+
   describe('Unauthorized access', () => {
     test('should return an unauthorized access status and error', async () => {
       const response = await request(app)

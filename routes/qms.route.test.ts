@@ -76,7 +76,6 @@ describe('QMS integration tests', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.connection.dropDatabase();
   });
   
   describe('POST /api/v1/poll (QMS integration)', () => {

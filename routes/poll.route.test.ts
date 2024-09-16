@@ -56,7 +56,6 @@ describe('Create, Update, Read and Delete Polls', () => {
       collection.deleteMany({})
     )
   );
-  await mongoose.connection.dropDatabase();
 });
 
   describe('POST /api/v1/poll', () => {
