@@ -8,44 +8,6 @@ jest.setTimeout(100000);
 
 let refreshToken = '';
 describe('Authentication Routes', () => {
-  beforeAll(async () => {
-    const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
-    
-    // Add retry logic for MongoDB connection
-    const maxRetries = 3;
-    const retryInterval = 2000; // 2 seconds
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await mongoose.connect(mongoUri);
-        if (mongoose.connection.readyState === 1) {
-          logger.info('MongoDB connection successful');
-          break;
-        }
-      } catch (error) {
-        console.error(`Attempt ${attempt}: MongoDB connection failed`);
-        if (attempt === maxRetries) {
-          throw new Error('Failed to connect to MongoDB after multiple attempts');
-        }
-        await new Promise(resolve => setTimeout(resolve, retryInterval));
-      }
-    }
-  });
-
-  afterAll(async () => {
-    // Delete all the data in collections
-    await Promise.all(
-      Object.values(mongoose.connection.collections).map(async (collection) =>
-        collection.deleteMany({})
-      )
-    );
-    
-    // Close the mongoose connection
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
-    }
-  });
-
   describe('POST /api/v1/auth/register', () => {
     test('should register a new user', async () => {
       const response = await request(app)

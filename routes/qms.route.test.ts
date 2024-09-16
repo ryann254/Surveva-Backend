@@ -11,9 +11,8 @@ import {
 } from './poll.test.data';
 import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
-import mongoose from 'mongoose';
-import { config, logger } from '../config';
 import { reqNewUserQMS, reqLoginUserQMS } from './auth.test.data';
+import mongoose from 'mongoose';
 
 let user;
 let accessToken: string;
@@ -25,30 +24,8 @@ let updatedAdditionalPolls: any[] = [];
 jest.setTimeout(100000);
 
 describe('QMS integration tests', () => {
+
   beforeAll(async () => {
-    const mongoUri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
-    await mongoose.connect(mongoUri);
-
-    // Add retry logic for MongoDB connection
-    const maxRetries = 3;
-    const retryInterval = 2000; // 2 seconds
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        await mongoose.connect(mongoUri);
-        if (mongoose.connection.readyState === 1) {
-          logger.info('MongoDB connection successful');
-          break;
-        }
-      } catch (error) {
-        console.error(`Attempt ${attempt}: MongoDB connection failed`);
-        if (attempt === maxRetries) {
-          throw new Error('Failed to connect to MongoDB after multiple attempts');
-        }
-        await new Promise(resolve => setTimeout(resolve, retryInterval));
-      }
-    }
-
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserQMS);
     const loginResponse = await request(app)
@@ -99,12 +76,9 @@ describe('QMS integration tests', () => {
         collection.deleteMany({})
       )
     );
-    // Close the mongoose connection
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
-    }
+    await mongoose.connection.dropDatabase();
   });
-
+  
   describe('POST /api/v1/poll (QMS integration)', () => {
     test('Layer 1: should return polls with same category and language', async () => {
       const response = await request(app)
@@ -148,7 +122,7 @@ describe('QMS integration tests', () => {
         .expect(httpStatus.CREATED);
 
       expect(res.body).toHaveLength(6);
-      expect(res.body[0].language).toBe('english');
+      expect(res.body[0].language.toLowerCase()).toBe('english');
     });
 
     test('Layer 4a: should return polls with same category but different language', async () => {

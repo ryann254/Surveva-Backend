@@ -4,4 +4,7 @@ module.exports = {
   transform: {
     '^.+.tsx?$': ['ts-jest', {}],
   },
+  setupFilesAfterEnv: ['./jest.setup.ts'],
+  // globalSetup: '<rootDir>/globalSetup.ts',
+  // globalTeardown: '<rootDir>/globalTeardown.ts',
 };
