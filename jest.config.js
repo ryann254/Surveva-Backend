@@ -1,10 +1,8 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
+  preset: 'ts-jest',
   testEnvironment: 'node',
-  transform: {
-    '^.+.tsx?$': ['ts-jest', {}],
-  },
   setupFilesAfterEnv: ['./jest.setup.ts'],
-  // globalSetup: '<rootDir>/globalSetup.ts',
-  // globalTeardown: '<rootDir>/globalTeardown.ts',
+  // globalSetup: './globalSetup.ts',
+  // globalTeardown: './globalTeardown.ts',
 };

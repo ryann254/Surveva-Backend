@@ -16,7 +16,7 @@ let differentUserId = '';
 jest.setTimeout(100000);
 
 describe('Create, Update, Read and Delete Users', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUser2);
     userId = user._id as string;
@@ -24,6 +24,15 @@ describe('Create, Update, Read and Delete Users', () => {
       .post('/api/v1/auth/login')
       .send(reqLoginUser2);
     accessToken = loginResponse.body.tokens.access.token;
+  });
+
+  afterAll(async () => {
+    // Delete all the data in collections
+    await Promise.all(
+      Object.values(mongoose.connection.collections).map(async (collection) =>
+        collection.deleteMany({})
+      )
+    );
   });
 
   describe('Unauthorized access', () => {

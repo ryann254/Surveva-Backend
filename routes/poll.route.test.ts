@@ -176,7 +176,6 @@ describe('Create, Update, Read and Delete Polls', () => {
     });
 
     test('should update popularityCount and create a new response', async () => {
-      const poll = await request(app).post('/api/v1/poll').set('Authorization', `Bearer ${accessToken}`).send(reqCreatePoll)
       await request(app)
         .patch(`/api/v1/poll/${pollId}?actionType=clicked`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -216,7 +215,6 @@ describe('Create, Update, Read and Delete Polls', () => {
     });
 
     test('should update popularityCount and comments', async () => {
-      const poll = await request(app).post('/api/v1/poll').set('Authorization', `Bearer ${accessToken}`).send(reqCreatePoll)
       await request(app)
         .patch(`/api/v1/poll/${pollId}?actionType=clicked`)
         .set('Authorization', `Bearer ${accessToken}`)
