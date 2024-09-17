@@ -16,7 +16,7 @@ let differentUserId = '';
 jest.setTimeout(100000);
 
 describe('Create, Update, Read and Delete Users', () => {
-  beforeAll(async () => {
+  beforeAll(async () => {    
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUser2);
     userId = user._id as string;

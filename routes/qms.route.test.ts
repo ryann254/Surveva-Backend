@@ -13,6 +13,7 @@ import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
 import { reqNewUserQMS, reqLoginUserQMS } from './auth.test.data';
 import mongoose from 'mongoose';
+import { config, logger } from '../config';
 
 let user;
 let accessToken: string;

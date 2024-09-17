@@ -1,20 +1,20 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { config, logger } from './config';
 
-let mongod: MongoMemoryServer;
-
 beforeAll(async () => {
-  logger.info('Connecting to MongoDB...');
-  mongod = await MongoMemoryServer.create();
-  const uri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
-  await mongoose.connect(uri, { serverSelectionTimeoutMS: 60000 });
-  logger.info('Connected to MongoDB');
-}, 60000);
+  // Check if MongoDB is connected, if not, connect
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      const uri = config.nodeEnv === 'development' ? config.mongoDBUriTestDB : config.mongoDBUriProdTestDB;
+      await mongoose.connect(uri);
+      logger.info('Connected to MongoDB in Setup File');
+    } catch (error) {
+      logger.error('Failed to connect to MongoDB in Setup File', error);
+      throw error;
+    }
+  }
+});
 
 afterAll(async () => {
-  logger.info('Disconnecting from MongoDB...');
-  await mongoose.disconnect();
-  await mongod.stop();
-  logger.info('Disconnected from MongoDB');
+  // No need to disconnect here as it will be handled by globalTeardown
 });

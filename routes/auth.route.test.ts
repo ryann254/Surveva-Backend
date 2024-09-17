@@ -13,7 +13,7 @@ describe('Authentication Routes', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send(reqNewUser);
-
+      
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );
