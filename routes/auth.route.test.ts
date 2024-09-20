@@ -2,32 +2,18 @@ import request from 'supertest';
 import app from '../app';
 import { reqLoginUser, reqNewUser } from './auth.test.data';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 
 jest.setTimeout(100000);
 
 let refreshToken = '';
 describe('Authentication Routes', () => {
-  beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
-  });
-
-  afterAll(async () => {
-    // Delete all the data in collections
-    await Promise.all(
-      Object.values(mongoose.connection.collections).map(async (collection) =>
-        collection.deleteMany({})
-      )
-    );
-    await mongoose.disconnect();
-  });
-
   describe('POST /api/v1/auth/register', () => {
     test('should register a new user', async () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send(reqNewUser);
-
+      
       expect(response.headers['content-type']).toBe(
         'application/json; charset=utf-8'
       );

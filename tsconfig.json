@@ -5,5 +5,9 @@
 			"strictNullChecks": true,
 			"skipLibCheck": true,
 			"outDir": "./dist"
-		}
+		},
+	"include": [
+		"src/**/*",
+		"jest.setup.ts"
+	]
 }

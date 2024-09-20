@@ -8,7 +8,7 @@ import QMS from '../mongodb/models/qms';
 import ServedPoll from '../mongodb/models/served_poll';
 import User from '../mongodb/models/user';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 import { reqNewUserDSA, reqNewUserDSA2, reqLoginUserDSA,  } from './auth.test.data';
 import { DSALayers } from '../config';
 
@@ -23,8 +23,6 @@ jest.setTimeout(100000);
 
 describe('DSA integration tests', () => {
   beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
-
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserDSA);
     user2 = await User.create(reqNewUserDSA2);
@@ -85,24 +83,29 @@ describe('DSA integration tests', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
   });
 
   describe('GET /api/v1/poll (Discovery Section Algorithm)', () => {
     test('Layer 1: should return polls matching user\'s preferred categories and language', async () => {
       // Set user preferences
-      Object.assign(user, {
-        categories: [categoryMap.get('Science and Technology'), categoryMap.get('Media and Entertainment')],
-        language: 'English',
-      });
-      await user.save();
+      const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+          $set: {
+            categories: [categoryMap.get('Science and Technology'), categoryMap.get('Media and Entertainment')],
+            language: 'English',
+          }
+        },
+        { new: true, runValidators: true }
+      );
+      user = updatedUser;
       
       const response = await request(app)
         .get('/api/v1/poll')
         .set('Authorization', `Bearer ${accessToken}`)
         .query({ dsaLayer: DSALayers.LAYER_1, page: 1, categoryIndex: 0 })
         .expect(httpStatus.OK);
-
+      
       expect(response.body.docs).toHaveLength(10);
       expect(response.body.docs[0].category.toString()).toBe(user.categories[0].toString());
       expect(response.body.categoryIndexInt).toBe(1);
@@ -111,11 +114,17 @@ describe('DSA integration tests', () => {
 
     test('Layer 2: should return trending polls in user\'s geographical region', async () => {
       // Set user preferences to non-existing category to trigger Layer 2
-      Object.assign(user, {
-        categories: [categoryMap.get('Health and Food'), categoryMap.get('Business')],
-        language: 'English',
-      });
-      await user.save();
+      const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+          $set: {
+            categories: [categoryMap.get('Health and Food'), categoryMap.get('Business')],
+            language: 'English',
+          }
+        },
+        { new: true, runValidators: true }
+      );
+      user = updatedUser;
       
       const response = await request(app)
       .get('/api/v1/poll')

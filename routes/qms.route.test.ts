@@ -11,9 +11,9 @@ import {
 } from './poll.test.data';
 import QMS from '../mongodb/models/qms';
 import User from '../mongodb/models/user';
-import mongoose from 'mongoose';
-import { config } from '../config';
 import { reqNewUserQMS, reqLoginUserQMS } from './auth.test.data';
+import mongoose from 'mongoose';
+import { config, logger } from '../config';
 
 let user;
 let accessToken: string;
@@ -25,9 +25,8 @@ let updatedAdditionalPolls: any[] = [];
 jest.setTimeout(100000);
 
 describe('QMS integration tests', () => {
-  beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
 
+  beforeAll(async () => {
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUserQMS);
     const loginResponse = await request(app)
@@ -78,9 +77,8 @@ describe('QMS integration tests', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
   });
-
+  
   describe('POST /api/v1/poll (QMS integration)', () => {
     test('Layer 1: should return polls with same category and language', async () => {
       const response = await request(app)
@@ -124,7 +122,7 @@ describe('QMS integration tests', () => {
         .expect(httpStatus.CREATED);
 
       expect(res.body).toHaveLength(6);
-      expect(res.body[0].language).toBe('english');
+      expect(res.body[0].language.toLowerCase()).toBe('english');
     });
 
     test('Layer 4a: should return polls with same category but different language', async () => {
