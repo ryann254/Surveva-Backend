@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Survey collection app",
   "scripts": {
-    "test": "jest --runInBand --watchAll --testPathIgnorePatterns=\"dist\" --testPathIgnorePatterns=\"node_modules\"",
+    "test:dev": "jest --runInBand --watchAll --testPathIgnorePatterns=\"dist\" --testPathIgnorePatterns=\"node_modules\"",
+    "test:ci": "jest --runInBand --forceExit",
     "start": "node ./dist/index.js",
     "compile:watch": "tsc --build --watch",
     "pre:dev": "cross-env NODE_ENV=development nodemon --experimental-modules --es-module-specifier-resolution=node dist/index.js",

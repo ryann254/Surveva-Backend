@@ -187,6 +187,7 @@ export const discoverySectionAlgorithm = async (
         categoryIndexInt = index;
       })
     );
+    // UnComment this for debugging purposes
     // logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
   }
 
@@ -274,6 +275,8 @@ export const discoverySectionAlgorithm = async (
     } else {
       dsaPolls = dsaPolls.concat(filteredServedTrendingPolls);
     }
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached DSA LAYER 2 ${dsaPolls}`);
   }
 

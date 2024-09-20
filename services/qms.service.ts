@@ -73,6 +73,8 @@ export const queueMangagementSystem = async (
       ],
     }).limit(10);
     qmsPolls = qmsPolls.concat(sameCategoryAndLanguagePolls);
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached QMS LAYER 1 ${qmsPolls}`);
   }
 
@@ -111,6 +113,8 @@ export const queueMangagementSystem = async (
         }
       })
     );
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached QMS LAYER 2 ${qmsPolls}`);
   }
 
@@ -134,6 +138,8 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(sameLanguagePolls);
     }
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached QMS LAYER 3 ${qmsPolls}`);
   }
 
@@ -170,6 +176,8 @@ export const queueMangagementSystem = async (
         }
       }
     }
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached QMS LAYER 4a ${qmsPolls}`);
   }
 
@@ -212,6 +220,8 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(translatedPolls);
     }
+
+    // UnComment this for debugging purposes
     // logger.info(`Reached QMS LAYER 4b ${qmsPolls}`);
   }
 
