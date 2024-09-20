@@ -41,7 +41,7 @@ jobs:
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-        run: npm test
+        run: npm run test:ci
 
       - name: Exit after tests
         if: always()
