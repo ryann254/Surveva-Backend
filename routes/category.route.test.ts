@@ -3,7 +3,7 @@ import app from '../app';
 import { reqCreateCategory, reqUpdateCategory } from './category.test.data';
 import { reqNewUserCategory, reqLoginUserCategory } from './auth.test.data';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 import User from '../mongodb/models/user';
 
 let accessToken = '';
@@ -13,8 +13,6 @@ jest.setTimeout(100000);
 
 describe('Create, Update, Read and Delete Categories', () => {
   beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
-
     // Create a new user then login using their credentials.
     await User.create(reqNewUserCategory);
     const loginResponse = await request(app)
@@ -30,7 +28,6 @@ describe('Create, Update, Read and Delete Categories', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
   });
 
   describe('Unauthorized access', () => {

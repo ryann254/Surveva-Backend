@@ -3,7 +3,7 @@ import app from '../app';
 import { reqCreateUser, reqUpdateUser } from './user.test.data';
 import { reqLoginUser2, reqNewUser2 } from './auth.test.data';
 import mongoose from 'mongoose';
-import { config } from '../config';
+import { config, logger } from '../config';
 import User from '../mongodb/models/user';
 import QMS from '../mongodb/models/qms'; // Add this import if not already present
 
@@ -16,11 +16,7 @@ let differentUserId = '';
 jest.setTimeout(100000);
 
 describe('Create, Update, Read and Delete Users', () => {
-  beforeAll(async () => {
-    await mongoose.connect(config.mongoDBUriTestDB);
-  });
-
-  beforeEach(async () => {
+  beforeAll(async () => {    
     // Create a new user then login using their credentials.
     user = await User.create(reqNewUser2);
     userId = user._id as string;
@@ -30,16 +26,6 @@ describe('Create, Update, Read and Delete Users', () => {
     accessToken = loginResponse.body.tokens.access.token;
   });
 
-  afterEach(async () => {
-    // Delete the user and all QMS documents after each test
-    if (user) {
-      await User.findByIdAndDelete(user._id);
-      await QMS.deleteMany({}); // Delete all QMS documents
-    }
-    user = null;
-    accessToken = '';
-  });
-
   afterAll(async () => {
     // Delete all the data in collections
     await Promise.all(
@@ -47,7 +33,6 @@ describe('Create, Update, Read and Delete Users', () => {
         collection.deleteMany({})
       )
     );
-    await mongoose.disconnect();
   });
 
   describe('Unauthorized access', () => {

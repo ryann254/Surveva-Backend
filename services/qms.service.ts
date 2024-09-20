@@ -73,7 +73,9 @@ export const queueMangagementSystem = async (
       ],
     }).limit(10);
     qmsPolls = qmsPolls.concat(sameCategoryAndLanguagePolls);
-    logger.info(`Reached QMS LAYER 1 ${qmsPolls}`);
+
+    // UnComment this for debugging purposes
+    // logger.info(`Reached QMS LAYER 1 ${qmsPolls}`);
   }
 
   // LAYER 2:
@@ -111,7 +113,9 @@ export const queueMangagementSystem = async (
         }
       })
     );
-    logger.info(`Reached QMS LAYER 2 ${qmsPolls}`);
+
+    // UnComment this for debugging purposes
+    // logger.info(`Reached QMS LAYER 2 ${qmsPolls}`);
   }
 
   // LAYER 3:
@@ -134,7 +138,9 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(sameLanguagePolls);
     }
-    logger.info(`Reached QMS LAYER 3 ${qmsPolls}`);
+
+    // UnComment this for debugging purposes
+    // logger.info(`Reached QMS LAYER 3 ${qmsPolls}`);
   }
 
   // LAYER 4a:
@@ -170,7 +176,9 @@ export const queueMangagementSystem = async (
         }
       }
     }
-    logger.info(`Reached QMS LAYER 4a ${qmsPolls}`);
+
+    // UnComment this for debugging purposes
+    // logger.info(`Reached QMS LAYER 4a ${qmsPolls}`);
   }
 
   // LAYER 4b:
@@ -212,7 +220,9 @@ export const queueMangagementSystem = async (
     } else {
       qmsPolls = qmsPolls.concat(translatedPolls);
     }
-    logger.info(`Reached QMS LAYER 4b ${qmsPolls}`);
+
+    // UnComment this for debugging purposes
+    // logger.info(`Reached QMS LAYER 4b ${qmsPolls}`);
   }
 
   return qmsPolls;
