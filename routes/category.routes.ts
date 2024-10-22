@@ -9,10 +9,7 @@ import authMiddleware from '../middleware/auth.middleware';
 
 const router = Router();
 
-router
-  .route('/')
-  .get(authMiddleware(['manageCategories']), getAllCategoriesController)
-  .post(authMiddleware(['manageCategories']), createCategoryController);
+router.route('/').get(getAllCategoriesController).post(authMiddleware(['manageCategories']), createCategoryController);
 router
   .route('/:categoryId')
   .patch(authMiddleware(['manageCategories']), updateCategoryController)
@@ -64,10 +61,8 @@ export default router;
  *
  *   get:
  *     summary: Get all categories
- *     description: Only admins can retrieve all categories.
+ *     description: Retrieve all categories. This endpoint is public and does not require authentication.
  *     tags: [Categories]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: name
