@@ -15,12 +15,7 @@ import {
 import { ApiError, errorHandler } from './errors';
 import { errorConverter } from './errors/error';
 import { fillEmptyCategoryFields } from './services/poll.service';
-import { createUserController } from './controllers/user.controller';
-import {
-  loginController,
-  logoutController,
-} from './controllers/auth.controller';
-import { reqCreateUser } from './routes/user.test.data';
+import { getAllCategoriesController } from './controllers/category.controller';
 
 const app = express();
 
