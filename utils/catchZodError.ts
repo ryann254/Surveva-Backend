@@ -9,6 +9,7 @@ export const catchZodError = (functionToRun: () => any, res: Response) => {
     } catch (error) {
         if (error instanceof ZodError) {
             const firstError = error.errors[0];
+            console.error(firstError);
             return res.status(httpStatus.BAD_REQUEST).send({
                 message: `${firstError.path.join('.')} is required.`,
             });

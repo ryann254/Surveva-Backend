@@ -3,10 +3,11 @@ import { ApiError } from '../errors';
 import catchAsync from '../utils/catchAsync';
 import httpStatus from 'http-status';
 import { ITokenUser, UserObject } from '../mongodb/models/user';
-import { createUser } from '../services/user.service';
+import { createUser, getUserByEmail, getUserById } from '../services/user.service';
 import {
   generateAuthTokens,
   generateResetPasswordToken,
+  generateVerificationCode,
   generateVerifyEmailToken,
   refreshAuthTokens,
 } from '../services/token.service';
@@ -16,8 +17,8 @@ import {
   logout,
   resetPassword,
 } from '../services/auth.service';
-import { logger } from '../config';
-import { sendVerificationEmail, verifyEmail } from '../services/email.service';
+import { logger, TokenTypes } from '../config';
+import { sendVerificationCode, sendVerificationEmail, verifyEmail } from '../services/email.service';
 import { catchZodError } from '../utils/catchZodError';
 
 export const registerController = catchAsync(
@@ -88,9 +89,14 @@ export const forgotPasswordController = catchAsync(
         'Email is required to reset password'
       );
 
-    const resetPasswordToken = await generateResetPasswordToken(req.body.email);
+    const user = await getUserByEmail(req.body.email);
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
 
-    return res.status(httpStatus.OK).json({ resetPasswordToken });
+    const resetPasswordToken = await generateResetPasswordToken(user.email);
+    const verificationCode = await generateVerificationCode();
+    await sendVerificationCode(user.email, verificationCode, user.username);
+
+    return res.status(httpStatus.OK).json({ resetPasswordToken, verificationCode });
   }
 );
 
@@ -117,6 +123,7 @@ export const sendVerificationEmailController = catchAsync(
 
     return res.status(httpStatus.OK).json({
       message: 'Verification email sent',
+      token: verifyEmailToken,
     });
   }
 );
