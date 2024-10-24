@@ -56,6 +56,75 @@ export const sendEmail = async (
 };
 
 /**
+ * Send verification code to reset password.
+ * @param {string} to
+ * @param {string} token
+ * @param {string} name
+ */
+export const sendVerificationCode = async (
+  to: string,
+  token: string,
+  name: string
+) => {
+  const subject = 'Reset your Surveva password';
+  const text = `Dear ${name},
+  Thank you for using Surveva! To complete the reset password process, please follow the instructions below.
+  Please copy the verification code below and paste it into the Surveva app then click Continue: ${token}.
+  If you did not initiate this reset password, then ignore this email.`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Verify Your Surveva Account</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  .email-container {
+    max-width: 600px;
+    margin: auto;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  h4 {
+    color: #000;
+    margin-bottom: 15px;
+  }
+  p {
+    color: #333;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .token-copy-area {
+    background-color: #ffebcd;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+<div class="email-container">
+  <h4><strong>Dear ${name},</strong></h4>
+  <p>Thank you for registering with Surveva! To complete the verification process and start enjoying our survey/poll collection features, please follow the instructions below.</p>
+  <p>Please copy the verification token below and paste it into the Surveva app:</p>
+  <p class="token-copy-area">${token}</p>
+  <p>If you did not initiate this registration, kindly disregard this email.</p>
+  <p>Best regards,<br>The Surveva Team</p>
+</div>
+</body>
+</html>
+`;
+
+  await sendEmail(to, subject, text, html);
+};
+
+/**
  * Send verification email after registration.
  * @param {string} to
  * @param {string} token

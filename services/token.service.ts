@@ -15,6 +15,7 @@ import { config, logger, TokenTypes } from '../config';
 import { ApiError } from '../errors';
 import httpStatus from 'http-status';
 import { getUserByEmail, getUserById } from './user.service';
+import crypto from 'crypto';
 
 /**
  * Generate token
@@ -151,6 +152,16 @@ export const refreshAuthTokens = async (
   await refreshTokenDoc.deleteOne();
   const tokens = await generateAuthTokens(user as ITokenUser);
   return { user, tokens };
+};
+
+/**
+ * Generate verification code
+ * @returns {Promise<string>}
+ */
+export const generateVerificationCode = async (): Promise<string> => {
+  // Generate a cryptographically secure random number between 1000 and 9999
+  const code = crypto.randomInt(1000, 10000).toString().padStart(4, '0');
+  return code;
 };
 
 /**
