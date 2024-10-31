@@ -170,12 +170,8 @@ export const generateVerificationCode = async (): Promise<string> => {
  * @returns {Promise<string>}
  */
 export const generateResetPasswordToken = async (
-  email: string
+  user: IUserDoc
 ): Promise<string> => {
-  const user = await getUserByEmail(email);
-
-  if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
-
   const expires = moment().add(
     config.jwtResetPasswordExpirationMinutes,
     'minutes'
