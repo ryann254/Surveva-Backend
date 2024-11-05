@@ -117,16 +117,15 @@ export const discoverySectionAlgorithm = async (
   let currentCategory = user.categories[categoryIndexInt];
   let _start = (pageInt - 1) * 10;
 
+  // Remove categories that have already been viewed.
+  let categories = user.categories.slice(
+    categoryIndexInt,
+  );
+
   // LAYER 1:
   // Fetch polls that match the user's preferred categories and language.
   // Fetch polls from both the QMS collection and Served Polls collection in the ratio of 6:4
-
-  // Remove categories that have already been viewed.
-  let categories = user.categories.splice(
-    categoryIndexInt,
-    user.categories.length
-  );
-
+  if (categories.length > 0) {
   for (let index = 0; index < categories.length; index++) {
     const category = categories[index];
     if (dsaPolls.length >= 10) break;
@@ -195,8 +194,16 @@ export const discoverySectionAlgorithm = async (
     } else {
       dsaPolls = dsaPolls.concat(servedPolls);
     }
+
+    // If the dsaPolls array has less than 10 polls and we are on the last category, update the categoryIndexInt, pageInt and _start and move on to LAYER 2.
+    if (dsaPolls.length < 10 && index === categories.length - 1) {
+      categoryIndexInt += 1;
+      pageInt = 1;
+      _start = 0;
+    }
   }
   logger.info(`Reached Layer 1, dsaPolls length: ${dsaPolls.length}, categoryIndexInt: ${categoryIndexInt}, page: ${pageInt}`);
+}
   // UnComment this for debugging purposes
   // logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
 
@@ -226,7 +233,37 @@ export const discoverySectionAlgorithm = async (
       .sort({ popularityCount: -1 })
       .limit(4);
 
-    // There some instances esp when the app is new where there will be more admin polls than user generated polls.
+      // There are some instances where servedTrendingPolls will be empty or less than 4. In those instances we will fill up the remaining slots using qmsTrendingPolls.
+    if (servedTrendingPolls.length < 4) {
+      const numPollsToAdd = 4 - servedTrendingPolls.length;
+      qmsTrendingPolls = await QMS.find({
+        $and: [
+          { _id: { $nin: dsaPollIds } },
+          { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+        ],
+      })
+        .populate("owner")
+        .skip(_start)
+        .sort({ popularityCount: -1 })
+        .limit(6 + numPollsToAdd);
+    }
+
+    // And vice versa.
+    if (qmsTrendingPolls.length < 6) {
+      const numPollsToAdd = 6 - qmsTrendingPolls.length;
+      servedTrendingPolls = await ServedPoll.find({
+        $and: [
+          { _id: { $nin: dsaPollIds } },
+          { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+        ],
+      })
+        .populate("owner")
+        .skip(_start)
+        .sort({ popularityCount: -1 })
+        .limit(4 + numPollsToAdd);
+    }
+
+    // There also some instances esp when the app is new where there will be more admin polls than user generated polls.
     // In such scenarios, if the user generated polls in the QMS don't add up to 6, fill up the remaining slots with admin polls.
     if (qmsTrendingPolls.length < 6) {
       const numPollsToAdd = 6 - qmsTrendingPolls.length;
@@ -284,7 +321,7 @@ export const discoverySectionAlgorithm = async (
     } else {
       dsaPolls = dsaPolls.concat(filteredServedTrendingPolls);
     }
-    logger.info(`Reached Layer 2, ${dsaPolls.length}, categoryIndexInt: ${categoryIndexInt}, page: ${pageInt}`);
+    logger.info(`Reached Layer 2, dsaPolls length: ${dsaPolls.length}, categoryIndexInt: ${categoryIndexInt}, page: ${pageInt}`);
     // UnComment this for debugging purposes
     // logger.info(`Reached DSA LAYER 2 ${dsaPolls}`);
   }
