@@ -1,8 +1,8 @@
-import { Types } from 'mongoose';
-import { DSALayers, logger } from '../config';
-import QMS, { IQMSDoc } from '../mongodb/models/qms';
-import ServedPoll, { IServedPollDoc } from '../mongodb/models/served_poll';
-import { IUserDoc } from '../mongodb/models/user';
+import { Types } from "mongoose";
+import { DSALayers, logger } from "../config";
+import QMS, { IQMSDoc } from "../mongodb/models/qms";
+import ServedPoll, { IServedPollDoc } from "../mongodb/models/served_poll";
+import { IUserDoc } from "../mongodb/models/user";
 
 /**
  * Fetch Admin polls from the QMS Collection
@@ -20,7 +20,7 @@ export const fetchQMSAdminPolls = async (
   QMS.find({
     $and: [{ _id: { $nin: dsaPollIds } }, { isCreatedByAdmin: true }],
   })
-    .populate('owner')
+    .populate("owner")
     .skip(_start)
     .sort({ popularityCount: -1 })
     .limit(limit);
@@ -41,7 +41,7 @@ const fetchServedAdminPolls = async (
   ServedPoll.find({
     $and: [{ _id: { $nin: dsaPollIds } }, { isCreatedByAdmin: true }],
   })
-    .populate('owner')
+    .populate("owner")
     .skip(_start)
     .sort({ popularityCount: -1 })
     .limit(limit);
@@ -59,12 +59,11 @@ const fetchQMSCategoriesAndLanguagePolls = async (
   language: string,
   _start: number,
   limit: number
-) =>
-  QMS.find({
+) => await QMS.find({
     $and: [
       { category },
       { language },
-      { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
+      { isCreatedByAdmin: { $ne: true } },
     ],
   })
     .skip(_start)
@@ -84,8 +83,7 @@ const fetchServedCategoriesAndLanguagePolls = async (
   language: string,
   _start: number,
   limit: number
-) =>
-  ServedPoll.find({
+) => await ServedPoll.find({
     $and: [
       { category },
       { language },
@@ -109,87 +107,98 @@ export const discoverySectionAlgorithm = async (
 ): Promise<{
   docs: IQMSDoc[] | IServedPollDoc[];
   categoryIndexInt: number;
+  page: number;
 }> => {
-  const { dsaLayer, page, categoryIndex } = options;
+  const { page, categoryIndex } = options;
   let categoryIndexInt = parseInt(categoryIndex);
-  const pageInt = parseInt(page);
+  let pageInt = parseInt(page);
   let dsaPolls: IQMSDoc[] | IServedPollDoc[] = [];
+  // Track the previous category to detect category changes
+  let currentCategory = user.categories[categoryIndexInt];
   let _start = (pageInt - 1) * 10;
+
   // LAYER 1:
   // Fetch polls that match the user's preferred categories and language.
   // Fetch polls from both the QMS collection and Served Polls collection in the ratio of 6:4
-  if (dsaLayer === DSALayers.LAYER_1) {
-    // Remove categories that have already been viewed.
-    let categories = user.categories.splice(
-      categoryIndexInt,
-      user.categories.length
+
+  // Remove categories that have already been viewed.
+  let categories = user.categories.splice(
+    categoryIndexInt,
+    user.categories.length
+  );
+
+  for (let index = 0; index < categories.length; index++) {
+    const category = categories[index];
+    if (dsaPolls.length >= 10) break;
+
+    // Reset _start, pageInt and increment categoryIndexInt when switching to a new category
+    if (category !== currentCategory) {
+      _start = 0;
+      currentCategory = category;
+      categoryIndexInt += 1;
+      pageInt = 1;
+    }
+    
+    let qmsPolls = await fetchQMSCategoriesAndLanguagePolls(
+      category,
+      user.language,
+      _start,
+      6
     );
-    await Promise.all(
-      categories.map(async (category, index) => {
-        if (dsaPolls.length < 10) {
-          let qmsPolls = await fetchQMSCategoriesAndLanguagePolls(
-            category,
-            user.language,
-            _start,
-            6
-          );
-          let servedPolls = await fetchServedCategoriesAndLanguagePolls(
-            category,
-            user.language,
-            _start,
-            4
-          );
 
-          // There are some instances where servedPolls will be empty or less than 4. In those instances we will fill up the remaining slots using qmsPolls.
-          if (servedPolls.length < 4) {
-            const numPollsToAdd = 4 - servedPolls.length;
-            qmsPolls = await fetchQMSCategoriesAndLanguagePolls(
-              category,
-              user.language,
-              _start,
-              6 + numPollsToAdd
-            );
-          }
-
-          // And vice versa.
-          if (qmsPolls.length < 6) {
-            const numPollsToAdd = 6 - qmsPolls.length;
-            servedPolls = await fetchServedCategoriesAndLanguagePolls(
-              category,
-              user.language,
-              _start,
-              4 + numPollsToAdd
-            );
-          }
-
-          // Splice the `qmsPolls` array to ensure that it only adds the required number of polls to fill the `dsaPolls` array.
-          const numPollsToAdd = 10 - dsaPolls.length;
-
-          // Check if the `qmsPolls` has enough polls to fill the dsaPolls
-          if (qmsPolls.length >= numPollsToAdd) {
-            const removedPolls = qmsPolls.splice(0, numPollsToAdd);
-            dsaPolls = dsaPolls.concat(removedPolls);
-          } else {
-            dsaPolls = dsaPolls.concat(qmsPolls);
-          }
-
-          // Do the same for the `servedPolls` array
-          const numPollsToAdd2 = 10 - dsaPolls.length;
-
-          if (servedPolls.length >= numPollsToAdd2) {
-            const removedPolls = servedPolls.splice(0, numPollsToAdd2);
-            dsaPolls = dsaPolls.concat(removedPolls);
-          } else {
-            dsaPolls = dsaPolls.concat(servedPolls);
-          }
-        }
-        // Keep track of whether the algorithm will fetch polls from a different category.
-        categoryIndexInt = index;
-      })
+    let servedPolls = await fetchServedCategoriesAndLanguagePolls(
+      category,
+      user.language,
+      _start,
+      4
     );
-    // UnComment this for debugging purposes
-    // logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
+
+    // There are some instances where servedPolls will be empty or less than 4. In those instances we will fill up the remaining slots using qmsPolls.
+    if (servedPolls.length < 4) {
+      const numPollsToAdd = 4 - servedPolls.length;
+      qmsPolls = await fetchQMSCategoriesAndLanguagePolls(
+        category,
+        user.language,
+        _start,
+        6 + numPollsToAdd
+      );
+    }
+
+    // And vice versa.
+    if (qmsPolls.length < 6) {
+      const numPollsToAdd = 6 - qmsPolls.length;
+      servedPolls = await fetchServedCategoriesAndLanguagePolls(
+        category,
+        user.language,
+        _start,
+        4 + numPollsToAdd
+      );
+    }
+
+    // Splice the `qmsPolls` array to ensure that it only adds the required number of polls to fill the `dsaPolls` array.
+    const numPollsToAdd = 10 - dsaPolls.length;
+
+    // Check if the `qmsPolls` has enough polls to fill the dsaPolls
+    if (qmsPolls.length >= numPollsToAdd && numPollsToAdd > 0) {
+      const removedPolls = qmsPolls.splice(0, numPollsToAdd);
+      dsaPolls = dsaPolls.concat(removedPolls);
+    } else {
+      dsaPolls = dsaPolls.concat(qmsPolls);
+    }
+
+    // Do the same for the `servedPolls` array
+    const numPollsToAdd2 = 10 - dsaPolls.length;
+
+    if (servedPolls.length >= numPollsToAdd2 && numPollsToAdd2 > 0) {
+      const removedPolls = servedPolls.splice(0, numPollsToAdd2);
+      dsaPolls = dsaPolls.concat(removedPolls);
+    } else {
+      dsaPolls = dsaPolls.concat(servedPolls);
+    }
   }
+  logger.info(`Reached Layer 1, dsaPolls length: ${dsaPolls.length}, categoryIndexInt: ${categoryIndexInt}, page: ${pageInt}`);
+  // UnComment this for debugging purposes
+  // logger.info(`Reached DSA LAYER 1 ${dsaPolls}`);
 
   // LAYER 2:
   // If users don’t interact with polls from their preferred categories fetch trending polls in their geographical region.
@@ -202,7 +211,7 @@ export const discoverySectionAlgorithm = async (
         { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
       ],
     })
-      .populate('owner')
+      .populate("owner")
       .skip(_start)
       .sort({ popularityCount: -1 })
       .limit(6);
@@ -212,7 +221,7 @@ export const discoverySectionAlgorithm = async (
         { isCreatedByAdmin: { $ne: true } }, // Prioritize documents where isCreatedByAdmin is false
       ],
     })
-      .populate('owner')
+      .populate("owner")
       .skip(_start)
       .sort({ popularityCount: -1 })
       .limit(4);
@@ -275,10 +284,10 @@ export const discoverySectionAlgorithm = async (
     } else {
       dsaPolls = dsaPolls.concat(filteredServedTrendingPolls);
     }
-
+    logger.info(`Reached Layer 2, ${dsaPolls.length}, categoryIndexInt: ${categoryIndexInt}, page: ${pageInt}`);
     // UnComment this for debugging purposes
     // logger.info(`Reached DSA LAYER 2 ${dsaPolls}`);
   }
 
-  return { docs: dsaPolls, categoryIndexInt };
+  return { docs: dsaPolls, categoryIndexInt, page: pageInt };
 };

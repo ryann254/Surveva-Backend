@@ -130,14 +130,14 @@ export const updatePollController = catchAsync(
 
 export const getAllPollsController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!req.query.page || !req.query.categoryIndex || !req.query.dsaLayer)
+    if (!req.query.page || !req.query.categoryIndex)
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        'Page, Category Index and dsaLayer query parameters missing'
+        'Page and Category Index query parameters missing'
       );
 
     const user = await getUserById(req.user._id);
-    const options = pick(req.query, ['page', 'categoryIndex', 'dsaLayer']);
+    const options = pick(req.query, ['page', 'categoryIndex']);
     // Polls that have been sorted by the DSA(Discovery Section Algorithm).
     const dsaSortedPollsAndIndex = await discoverySectionAlgorithm(
       options,
