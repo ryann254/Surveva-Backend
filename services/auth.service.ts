@@ -51,15 +51,15 @@ export const loginUserWithEmailAndPassword = async (
  * @returns {Promise<IUserDoc>}
  */
 export const loginUserWithGoogleOrFacebook = async (
-  userBody: IUserSchema
+  email: string
 ): Promise<IUserDoc> => {
-  const user = await getUserByEmail(userBody.email);
+  const user = await getUserByEmail(email);
 
-  if (user) {
-    return user;
+  if (!user) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'User not found');
   }
 
-  return User.create(userBody);
+  return user;
 };
 
 /**

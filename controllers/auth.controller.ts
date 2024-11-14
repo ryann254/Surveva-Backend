@@ -49,11 +49,10 @@ export const loginController = catchAsync(
 
 export const loginWithGoogleOrFacebookController = catchAsync(
   async (req: Request, res: Response) => {
-    if (!Object.keys(req.body).length)
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Request body is empty');
+    if (!Object.keys(req.body.email).length)
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Email is required');
 
-    const parsedUser = catchZodError(() => UserObject.parse(req.body), res);
-    const user = await loginUserWithGoogleOrFacebook(parsedUser);
+    const user = await loginUserWithGoogleOrFacebook(req.body.email);
     const tokens = await generateAuthTokens(user as ITokenUser);
 
     return res.status(httpStatus.OK).json({ user, tokens });
@@ -92,7 +91,7 @@ export const forgotPasswordController = catchAsync(
     const user = await getUserByEmail(req.body.email);
     if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
 
-    const resetPasswordToken = await generateResetPasswordToken(user.email);
+    const resetPasswordToken = await generateResetPasswordToken(user);
     const verificationCode = await generateVerificationCode();
     await sendVerificationCode(user.email, verificationCode, user.username);
 
